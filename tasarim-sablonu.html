@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FırsatRadar – Arayüz Şablonu</title>
+<!-- Bu dosya bir TASARIM REFERANSIDIR. Uygulamanın arayüzü bu görünüme benzetilecek.
+     Renkler: zemin #F4F5F7, kart #FFFFFF, kenarlık #E3E5E9, ana renk #1D4ED8,
+     metin #1A1D23, ikincil metin #5A6070, uyarı #C2410C. Yazı tipi: Inter. -->
+<style>
+  body{margin:0;background:#F4F5F7;font-family:Inter,system-ui,sans-serif;color:#1A1D23}
+  .wrap{display:flex;flex-wrap:wrap;min-height:100vh}
+  nav{flex:1 1 200px;max-width:100%;background:#fff;border-right:1px solid #E3E5E9;padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:4px}
+  nav .logo{font-weight:700;font-size:18px;padding:0 12px 20px}
+  nav .logo span{color:#1D4ED8}
+  nav a{text-decoration:none;padding:10px 12px;border-radius:8px;color:#4B5160;font-size:14px}
+  nav a.active{background:#EEF2FF;color:#1E3A8A;font-weight:600}
+  main{flex:999 1 560px;min-width:0;padding:32px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px;max-width:1200px}
+  header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+  h1{margin:0;font-size:26px} h2{margin:0;font-size:18px}
+  .muted{color:#5A6070;font-size:13px;margin:4px 0 0}
+  .btn{height:44px;padding:0 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn.primary{border:none;background:#1D4ED8;color:#fff}
+  .btn.ghost{border:1px solid #D5D8DE;background:#fff;color:#1A1D23;font-weight:500}
+  .card{background:#fff;border:1px solid #E3E5E9;border-radius:12px;padding:20px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+  .stat .l{font-size:13px;color:#5A6070}.stat .v{font-size:26px;font-weight:700;margin-top:6px}.stat .h{font-size:12px;color:#5A6070;margin-top:4px}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:820px}
+  th{text-align:left;color:#5A6070;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:10px 8px;border-bottom:1px solid #E3E5E9}
+  td{padding:14px 8px;border-bottom:1px solid #F0F1F3}
+  .sub{font-size:12px;color:#5A6070}
+  .pill{background:#F1F3F6;padding:4px 10px;border-radius:999px;font-size:13px}
+  .bar{display:flex;align-items:center;gap:8px}.bar .t{flex:1;height:8px;background:#EDEFF2;border-radius:4px;overflow:hidden}.bar .f{height:8px}
+  .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+  label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500}
+  input,select{height:40px;border:1px solid #D5D8DE;border-radius:8px;padding:0 12px;font-size:14px;font-family:inherit;background:#fff}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .row{display:flex;justify-content:space-between;font-size:14px;padding-bottom:10px;border-bottom:1px solid #F0F1F3}
+  .row span:last-child{font-weight:600}
+  .chart{display:flex;align-items:flex-end;gap:14px;height:90px}
+  .chart .w{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .chart .b{display:flex;align-items:flex-end;gap:4px;height:70px}
+  .chart .b div{width:14px;border-radius:3px 3px 0 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav aria-label="Ana menü">
+    <div class="logo">Fırsat<span>Radar</span></div>
+    <a class="active" href="#">Genel Bakış</a>
+    <a href="#">Ürün Taramaları</a>
+    <a href="#">Satışlarım</a>
+    <a href="#">Raporlar</a>
+    <a href="#">Ayarlar</a>
+  </nav>
+  <main>
+    <header>
+      <div><h1>Genel Bakış</h1><p class="muted" style="font-size:14px">Son tarama: bugün 09:00 · Sonraki otomatik tarama: yarın 09:00</p></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost">Tarama Zamanla</button><button class="btn primary">Şimdi Tara</button></div>
+    </header>
+
+    <section class="stats">
+      <div class="card stat"><div class="l">Bulunan fırsat</div><div class="v">24 ürün</div><div class="h">Son taramada</div></div>
+      <div class="card stat"><div class="l">Ortalama net kâr</div><div class="v">%22</div><div class="h">Fırsat ürünlerde</div></div>
+      <div class="card stat"><div class="l">Bu ay satış</div><div class="v">[ADET]</div><div class="h">Girdiğin kayıtlardan</div></div>
+      <div class="card stat"><div class="l">Bu ay net kâr</div><div class="v">₺[TUTAR]</div><div class="h">Komisyon ve kargo düşülmüş</div></div>
+    </section>
+
+    <section class="card">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px">
+        <div><h2>Tarama Sonuçları: Fırsat Ürünler</h2><p class="muted">Sistem ürünleri bulur, fiyatları karşılaştırır ve en uygun pazarı önerir. (Örnek veri)</p></div>
+        <label style="flex-direction:row;align-items:center;gap:8px">Sırala <select style="height:36px"><option>Satılabilirlik</option><option>Net kâr %</option><option>Tahmini satış</option></select></label>
+      </div>
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Ürün</th><th>Alış (kaynak)</th><th>Önerilen satış</th><th>En iyi pazar</th><th>Net kâr</th><th>Satılabilirlik</th><th>30 günde tahmini</th></tr></thead>
+        <tbody>
+          <tr><td><b>Laptop standı (alüminyum)</b></td><td>₺[ALIŞ]<div class="sub">Toptancı A</div></td><td>₺[SATIŞ]</td><td><span class="pill">Trendyol</span></td><td><b>%32</b><div class="sub">₺[KÂR] / adet</div></td><td><div class="bar"><div class="t"><div class="f" style="width:86%;background:#1D4ED8"></div></div><b>86</b></div></td><td>~40 adet</td></tr>
+          <tr><td><b>Manuel kahve öğütücü</b></td><td>₺[ALIŞ]<div class="sub">İthalatçı B</div></td><td>₺[SATIŞ]</td><td><span class="pill">Amazon TR</span></td><td><b>%28</b><div class="sub">₺[KÂR] / adet</div></td><td><div class="bar"><div class="t"><div class="f" style="width:74%;background:#1D4ED8"></div></div><b>74</b></div></td><td>~25 adet</td></tr>
+          <tr><td><b>Mekanik klavye (60%)</b></td><td>₺[ALIŞ]<div class="sub">Toptancı C</div></td><td>₺[SATIŞ]</td><td><span class="pill">Hepsiburada</span></td><td><b>%21</b><div class="sub">₺[KÂR] / adet</div></td><td><div class="bar"><div class="t"><div class="f" style="width:63%;background:#8A94A6"></div></div><b>63</b></div></td><td>~18 adet</td></tr>
+          <tr><td><b>LED masa lambası</b></td><td>₺[ALIŞ]<div class="sub">Üretici D</div></td><td>₺[SATIŞ]</td><td><span class="pill">Trendyol</span></td><td><b>%18</b><div class="sub">₺[KÂR] / adet</div></td><td><div class="bar"><div class="t"><div class="f" style="width:51%;background:#8A94A6"></div></div><b>51</b></div></td><td>~12 adet</td></tr>
+          <tr><td><b>Telefon tutucu (araç)</b></td><td>₺[ALIŞ]<div class="sub">Toptancı A</div></td><td>₺[SATIŞ]</td><td><span class="pill">Kendi sitem</span></td><td><b>%9</b><div class="sub">₺[KÂR] / adet</div></td><td><div class="bar"><div class="t"><div class="f" style="width:34%;background:#C2410C"></div></div><b>34</b></div></td><td>~6 adet</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="muted" style="font-size:12px;margin-top:14px">Net kâr = Satış fiyatı − Alış − Pazar komisyonu − Kargo. Satılabilirlik; talep, rakip sayısı ve fiyat farkından hesaplanan 0–100 arası puandır.</p>
+    </section>
+
+    <div class="two">
+      <section class="card" style="display:flex;flex-direction:column;gap:14px">
+        <div><h2>Satış Kaydı Ekle</h2><p class="muted">Her satıştan sonra gir; raporlar otomatik güncellenir.</p></div>
+        <label>Ürün <input placeholder="Örn. Laptop standı"></label>
+        <div class="grid2">
+          <label>Geliş (alış) fiyatı <input placeholder="₺"></label>
+          <label>Gidiş (satış) fiyatı <input placeholder="₺"></label>
+          <label>Pazar <select><option>Trendyol</option><option>Hepsiburada</option><option>Amazon TR</option><option>Kendi sitem</option></select></label>
+          <label>Kargo + komisyon <input placeholder="₺"></label>
+        </div>
+        <button class="btn primary">Kaydet</button>
+      </section>
+
+      <section class="card" style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><h2>Bu Ayın Raporu</h2><a href="#" style="font-size:13px;color:#1D4ED8">Detaylı rapor</a></div>
+        <div class="row"><span>Toplam ciro</span><span>₺[TUTAR]</span></div>
+        <div class="row"><span>Toplam maliyet (alış + kargo + komisyon)</span><span>₺[TUTAR]</span></div>
+        <div class="row"><span>Net kâr</span><span>₺[TUTAR]</span></div>
+        <div class="row"><span>En kârlı ürün</span><span>[ÜRÜN]</span></div>
+        <div class="row"><span>Tahmin isabeti</span><span>%[ORAN]</span></div>
+        <div style="font-size:13px;color:#4B5160;font-weight:500">Gerçekleşen vs. tahmin (son 4 hafta)</div>
+        <div class="chart">
+          <div class="w"><div class="b"><div style="height:40px;background:#1D4ED8"></div><div style="height:48px;background:#C3CAD6"></div></div><span class="sub">1. hf</span></div>
+          <div class="w"><div class="b"><div style="height:55px;background:#1D4ED8"></div><div style="height:52px;background:#C3CAD6"></div></div><span class="sub">2. hf</span></div>
+          <div class="w"><div class="b"><div style="height:48px;background:#1D4ED8"></div><div style="height:58px;background:#C3CAD6"></div></div><span class="sub">3. hf</span></div>
+          <div class="w"><div class="b"><div style="height:66px;background:#1D4ED8"></div><div style="height:60px;background:#C3CAD6"></div></div><span class="sub">4. hf</span></div>
+        </div>
+        <div class="sub" style="display:flex;gap:16px"><span>■ <span style="color:#1D4ED8">Gerçekleşen</span></span><span>■ Tahmin</span></div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

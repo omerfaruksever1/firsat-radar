@@ -1,0 +1,4 @@
+# Testler ve ekran görüntüsü kontrolleri için (uygulamanın çalışması için gerekmez)
+-r requirements.txt
+pytest==9.2.0
+playwright==1.65.2

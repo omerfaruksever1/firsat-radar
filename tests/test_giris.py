@@ -1,0 +1,33 @@
+"""Sitedeki şifre ekranı: şifre ayarlıysa doğru şifre girilmeden hiçbir sayfa ve veri görünmez."""
+
+from arayuz_yardimci import sunucu
+
+
+def test_sifre_ekrani(tmp_path):
+    with sunucu(tmp_path / "test.db", 'site_sifresi = "gizli-123"\n') as uygulama:
+        ekran = uygulama.sayfa()
+        assert ekran.tur("title")[0]["props"]["body"] == "FırsatRadar"
+        assert not ekran.tur("metric")  # veriler görünmüyor
+        assert [s["url_path"] for s in ekran.cevap["pages"]] == [""]  # menü (diğer sayfalar) yok
+        oturum = ekran.cevap["session_id"]
+        sifre, giris = ekran.eylem("Şifre", "text_input"), ekran.eylem("Giriş")
+
+        yanlis = uygulama.istek({"session_id": oturum, "widget_state": {sifre: "yanlis"},
+                                 "trigger": {"key": giris}})
+        assert "Şifre yanlış." in yanlis.metinler("error")
+        assert not yanlis.tur("metric")
+
+        dogru = uygulama.istek({"session_id": oturum, "widget_state": {sifre: "gizli-123"},
+                                "trigger": {"key": giris}})
+        assert dogru.tur("metric")  # Genel Bakış açıldı
+        assert len(dogru.cevap["pages"]) == 9
+        assert uygulama.istek({"session_id": oturum, "page": "giderler"}).tur("title")[0]["props"]["body"] == "Giderler"
+
+        # Yeni bir ziyaretçi (yeni oturum) yine şifre ekranını görür; sayfa adresini bilse bile giremez
+        yeni_ziyaretci = uygulama.sayfa()
+        assert not yeni_ziyaretci.tur("metric") and len(yeni_ziyaretci.cevap["pages"]) == 1
+
+
+def test_sifre_yoksa_sorulmaz(tmp_path):
+    with sunucu(tmp_path / "test.db") as uygulama:
+        assert uygulama.sayfa().tur("metric")

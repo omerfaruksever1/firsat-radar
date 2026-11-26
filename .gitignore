@@ -1,0 +1,11 @@
+# Gerçek veriler ve yedekler ASLA GitHub'a yüklenmez
+*.db
+yedekler/
+
+# Şifreler ve veritabanı adresi (sitede Streamlit "Secrets" bölümüne girilir)
+.streamlit/secrets.toml
+
+# Python ve araç dosyaları
+.venv/
+__pycache__/
+.pytest_cache/

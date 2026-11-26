@@ -1,0 +1,95 @@
+# FırsatRadar teması — tasarim-sablonu.html renkleri (aydınlık) + uyumlu karanlık mod.
+# Varsayılan olarak bilgisayarın ayarını izler; sağ üstteki ⋮ → Settings menüsünden değiştirilebilir.
+# Şablon renkleri: zemin #F4F5F7, kart #FFFFFF, kenarlık #E3E5E9, ana renk #1D4ED8,
+# metin #1A1D23, ikincil metin #5A6070, uyarı #C2410C. Kart zemini app.py içinde ayarlanır.
+
+[theme]
+font = "'Inter':https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFont = "'Inter':https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap"
+baseFontSize = 14
+baseFontWeight = 400
+headingFontSizes = ["26px", "22px", "18px", "16px", "14px", "12px"]
+headingFontWeights = [700, 700, 600, 600, 500, 500]
+metricValueFontSize = "26px"
+metricValueFontWeight = 700
+baseRadius = "12px"
+buttonRadius = "8px"
+showWidgetBorder = true
+showSidebarBorder = true
+linkUnderline = false
+paddingTop = "2rem"
+paddingBottom = "3rem"
+
+[theme.light]
+primaryColor = "#1D4ED8"
+backgroundColor = "#F4F5F7"
+# Giriş kutuları şablondaki gibi beyaz
+secondaryBackgroundColor = "#FFFFFF"
+codeBackgroundColor = "#F1F3F6"
+textColor = "#1A1D23"
+linkColor = "#1D4ED8"
+borderColor = "#E3E5E9"
+codeTextColor = "#1A1D23"
+grayColor = "#5A6070"
+blueColor = "#1D4ED8"
+orangeColor = "#C2410C"
+redColor = "#DC2626"
+greenColor = "#15803D"
+yellowColor = "#CA8A04"
+violetColor = "#7C3AED"
+# İlk iki renk grafiklerde "Kâr" (ana renk) ve "Zarar" (uyarı rengi) çubukları içindir.
+chartCategoricalColors = ["#1D4ED8", "#C2410C", "#C3CAD6", "#8A94A6", "#15803D", "#7C3AED"]
+dataframeBorderColor = "#F0F1F3"
+dataframeHeaderBackgroundColor = "#FFFFFF"
+dataframeHeaderTextColor = "#5A6070"
+
+[theme.dark]
+primaryColor = "#3466E8"
+backgroundColor = "#111418"
+secondaryBackgroundColor = "#1C2129"
+codeBackgroundColor = "#1C2129"
+textColor = "#E4E7EC"
+linkColor = "#8AB4FF"
+borderColor = "#2A3039"
+codeTextColor = "#E4E7EC"
+grayColor = "#9AA3B2"
+blueColor = "#7FA6FF"
+orangeColor = "#F08A4B"
+redColor = "#F87171"
+greenColor = "#4ADE80"
+yellowColor = "#FACC15"
+violetColor = "#A78BFA"
+chartCategoricalColors = ["#6C9BFF", "#F08A4B", "#3A4250", "#9AA3B2", "#4ADE80", "#A78BFA"]
+dataframeBorderColor = "#232830"
+dataframeHeaderBackgroundColor = "#181C22"
+dataframeHeaderTextColor = "#9AA3B2"
+
+[theme.sidebar]
+paddingTop = "1rem"
+
+[theme.light.sidebar]
+backgroundColor = "#FFFFFF"
+# Seçili menü öğesinin açık mavi zemini
+secondaryBackgroundColor = "#EEF2FF"
+codeBackgroundColor = "#F4F5F7"
+textColor = "#4B5160"
+codeTextColor = "#1A1D23"
+borderColor = "#E3E5E9"
+primaryColor = "#1D4ED8"
+linkColor = "#1E3A8A"
+
+[theme.dark.sidebar]
+backgroundColor = "#15191F"
+secondaryBackgroundColor = "#1E2A4A"
+codeBackgroundColor = "#1C2129"
+textColor = "#C9CED8"
+codeTextColor = "#E4E7EC"
+borderColor = "#262C35"
+primaryColor = "#3466E8"
+linkColor = "#8AB4FF"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
