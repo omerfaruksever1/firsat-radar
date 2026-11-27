@@ -213,6 +213,47 @@ def urun_yorumu(df, urun):
     return tespitler
 
 
+ESKI_FIRSAT_GUN = 14
+
+
+def tahmin_isabeti(df):
+    """Fırsat Takibi'nden alınıp satılan ürünlerde tahmini satış fiyatı gerçek satış fiyatını ne kadar tuttu?
+    %100 = tam isabet. Bu tür satış yoksa None. Adet ağırlıklı: 100 − ortalama sapma (%)."""
+    t = df[df["tahmini_fiyat"].fillna(0) > 0]
+    if t.empty:
+        return None
+    sapma = (t["satis_fiyati"] - t["tahmini_fiyat"]).abs() / t["tahmini_fiyat"] * 100
+    return max(0.0, 100 - (sapma * t["adet"]).sum() / t["adet"].sum())
+
+
+def firsat_ozeti(df):
+    """Takipteki fırsatlar hakkında tespitler (df: fiyat.firsatlari_degerlendir() çıktısı)."""
+    if df.empty:
+        return [("bilgi", "Takip listende ürün yok.")]
+    tespitler = []
+    fiyatli = df[df["marj"].notna()]
+    if not fiyatli.empty:
+        en_iyi = fiyatli.iloc[0]
+        tur = "iyi" if en_iyi["net_kar"] > 0 else "uyari"
+        tespitler.append((tur, f"En iyi görünen: {en_iyi['urun_adi']}. {_tl(en_iyi['alis_fiyati'])} alıp "
+                               f"{en_iyi['satis_kanali']} kanalında {_tl(en_iyi['piyasa_fiyati'])} fiyatla satarsan, "
+                               f"adet başına {_tl(en_iyi['net_kar'])} net kâr kalır (marj {_yuzde(en_iyi['marj'])})."))
+    zararli = fiyatli[fiyatli["net_kar"] < 0]
+    if not zararli.empty:
+        adlar = ", ".join(zararli["urun_adi"].head(3))
+        tespitler.append(("uyari", f"Bu fiyatlarla zarar ettiren {len(zararli)} ürün var: {adlar}. Pazarlık yapmayı "
+                                   "ya da listeden çıkarmayı düşün."))
+    fiyatsiz = df[df["marj"].isna()]
+    if not fiyatsiz.empty:
+        tespitler.append(("bilgi", f"{len(fiyatsiz)} ürünün tahmini satış fiyatı girilmemiş, bu yüzden kârı "
+                                   "hesaplanamadı. “Claude'a sor” ile piyasa fiyatını öğrenip ekleyebilirsin."))
+    eski = df[df["bekleme_gun"] >= ESKI_FIRSAT_GUN]
+    if not eski.empty:
+        tespitler.append(("bilgi", f"{len(eski)} ürün {ESKI_FIRSAT_GUN} günden uzun süredir listede. İlan "
+                                   "satılmış ya da fiyat değişmiş olabilir; kontrol et."))
+    return tespitler
+
+
 # ---------- claude.ai için hazır soru metinleri ----------
 
 def _satis_tablosu(df, en_fazla=60):
@@ -257,3 +298,45 @@ Hepsiburada vb.) ve benim satış fiyatımı piyasayla karşılaştır.
 2. Bu ürünü en kârlı hangi kanalda ve hangi fiyat aralığında satabileceğimi öner.
 3. Bu ürünü tekrar alıp satmaya değer mi? Talep, rekabet ve riskler hakkında kısa yorum yap.
 Cevabı sade Türkçe ile, kısa maddeler halinde yaz."""
+
+
+def _firsat_satiri(r):
+    parcalar = [f"“{r.urun_adi}” ({kucuk_harf(r.durum)}", f"alış fiyatı {_tl(r.alis_fiyati)}"]
+    if r.kaynak or r.kaynak_turu:
+        parcalar.append("bulduğum yer: " + " / ".join(x for x in [r.kaynak_turu, r.kaynak] if x))
+    if r.notlar:
+        parcalar.append(f"not: {r.notlar}")
+    metin = ", ".join(parcalar) + ")"
+    if r.link:
+        metin += f"\n  Link: {r.link}"
+    return metin
+
+
+def firsat_istemi(r):
+    """Tek bir fırsat ürünü için piyasa fiyatı araştırması (r: fırsat satırı)."""
+    return f"""Türkiye'de bireysel olarak alım-satım yapıyorum. Şu ürünü almayı düşünüyorum:
+{_firsat_satiri(r)}
+
+Lütfen:
+1. İnternette bu ürünün Türkiye'deki güncel {kucuk_harf(r.durum)} satış fiyatlarına bak (Sahibinden, Dolap, Letgo, Trendyol, Hepsiburada, Amazon TR vb.) ve gerçekçi bir satış fiyatı aralığı ver.
+2. Bu ürünü en kolay ve en kârlı hangi kanalda satabileceğimi, ne kadar sürede satılabileceğini tahmin et.
+3. Bu fiyattan almaya değer mi? Dikkat etmem gereken riskler (sahte ürün, kusur, düşük talep) neler?
+Cevabın EN BAŞINA tek satır olarak tahmini satış fiyatını yaz, örneğin: TAHMİNİ SATIŞ FİYATI: 1.250 TL
+Sonra sade Türkçe ile kısa maddeler halinde açıkla."""
+
+
+def firsat_listesi_istemi(df, en_fazla=20):
+    """Birden çok fırsat ürünü için toplu piyasa fiyatı araştırması."""
+    satirlar = [f"{i}. {_firsat_satiri(r)}" for i, r in enumerate(df.head(en_fazla).itertuples(), 1)]
+    if len(df) > en_fazla:
+        satirlar.append(f"(… ve {len(df) - en_fazla} ürün daha; önce bunlara bakalım)")
+    liste = "\n".join(satirlar)
+    return f"""Türkiye'de bireysel olarak alım-satım yapıyorum. Aşağıdaki ürünleri almayı düşünüyorum:
+
+{liste}
+
+Lütfen her ürün için:
+1. İnternette Türkiye'deki güncel satış fiyatlarına bak (Sahibinden, Dolap, Letgo, Trendyol, Hepsiburada, Amazon TR vb.) ve gerçekçi bir tahmini satış fiyatı ver.
+2. En uygun satış kanalını ve talebin yüksek mi düşük mü olduğunu söyle.
+3. Bu alış fiyatından almaya değer mi, kısaca yorumla.
+Sonucu önce şu sütunlarla bir tablo olarak ver: Ürün | Tahmini satış fiyatı (TL) | Önerilen kanal | Almaya değer mi. Sonra sade Türkçe ile kısa açıklama yaz."""

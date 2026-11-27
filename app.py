@@ -1,11 +1,11 @@
 """FırsatRadar — giriş noktası: sayfa ayarları, tema ve sol menü. Sayfalar `sayfalar/` klasöründedir.
-Görünüm: tasarim-sablonu.html."""
+Görünüm: tasarim/ klasörü ("Gece Terminali"), ortak CSS styles.py."""
 
 import streamlit as st
 
 import veritabani as db
 from arayuz.giris import gizli_ayar, sifre_kontrolu
-from arayuz.ortak import tema_uygula
+from arayuz.ortak import durum_karti, menu_hazirla, tema_uygula
 
 st.set_page_config(page_title="FırsatRadar", page_icon=":material/radar:", layout="wide")
 tema_uygula()
@@ -20,14 +20,17 @@ if sifre := gizli_ayar("site_sifresi"):
 db.gunluk_yedek_al()
 db.tablolari_olustur()
 
+# Sol menüdeki sayaçlar: takipteki fırsat ve elde bekleyen ürün sayısı
+menu_hazirla({"firsat-takibi": len(db.firsatlari_getir(db.TAKIPTE)), "elimdekiler": len(db.stoklari_getir())})
+
 menu = {
     "": [
         st.Page("sayfalar/genel_bakis.py", title="Genel Bakış", default=True,
                 help="Bu ayın özeti, aylık hedef, hızlı satış kaydı ve son satışlar."),
     ],
     "Alım-satım": [
-        st.Page("sayfalar/urun_taramalari.py", title="Ürün Taramaları", url_path="urun-taramalari",
-                help="Fırsat ürün taraması. Şimdilik örnek veri; gerçek tarama 3. aşamada."),
+        st.Page("sayfalar/firsat_takibi.py", title="Fırsat Takibi", url_path="firsat-takibi",
+                help="Almayı düşündüğün ürünler: her kanaldaki net kâr, en iyi fırsatlar, Claude'a sor."),
         st.Page("sayfalar/elimdekiler.py", title="Elimdekiler", url_path="elimdekiler",
                 help="Aldığın ama henüz satmadığın ürünler; tek tıkla satışa dönüştür."),
         st.Page("sayfalar/satislarim.py", title="Satışlarım", url_path="satislarim",
@@ -49,4 +52,6 @@ menu = {
     ],
 }
 
-st.navigation(menu).run()
+sayfa = st.navigation(menu)
+durum_karti()
+sayfa.run()

@@ -1,6 +1,6 @@
 # FırsatRadar
 
-Bireysel ve kurumsal satıcılar için e-ticaret takip uygulaması: satış kaydı, elimdeki ürünler (stok),
+Bireysel ve kurumsal satıcılar için e-ticaret takip uygulaması: fırsat takibi, satış kaydı, elimdeki ürünler (stok),
 ek giderler, fiyat hesaplama, raporlar ve ücretsiz "akıllı özet" yorumları. Sıfır ve ikinci el ürünler;
 Trendyol, Hepsiburada, Amazon TR, Sahibinden, Dolap, Letgo, elden satış ve kendi siten.
 
@@ -46,8 +46,9 @@ ortam değişkenine o veritabanının adresini ver (gerçek verilerin olduğu ve
 | `app.py` | Giriş noktası: tema, şifre, sol menü |
 | `sayfalar/` | Her sayfa ayrı dosyada |
 | `arayuz/` | Ortak görünüm parçaları, formlar ve açılır pencereler, şifre ekranı |
+| `styles.py` | "Gece Terminali" görünümü: ortak CSS, KPI kartı, rozet, boş durum kartı |
+| `tasarim/` | Hedef görünümün HTML şablonları (referans; uygulamaya gömülmez) |
 | `veritabani.py` | Bütün veri işlemleri (SQLite ve PostgreSQL) |
 | `yorum.py` | Akıllı özet kuralları ve "Claude'a sor" metinleri |
-| `donemler.py`, `fiyat.py` | Rapor dönemleri ve fiyat hesaplayıcı |
-| `ornek_tarama.py` | Ürün Taramaları için örnek veri (gerçek tarama sonraki aşamada) |
+| `donemler.py`, `fiyat.py` | Rapor dönemleri, fiyat hesaplayıcı ve fırsat değerlendirmesi |
 | `tests/` | Otomatik testler |

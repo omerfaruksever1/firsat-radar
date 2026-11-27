@@ -79,6 +79,15 @@ class Ekran:
     def dugme_etiketleri(self):
         return [a.get("label") for a in self.cevap["actions"]]
 
+    def icerir(self, metin):
+        """Sayfanın herhangi bir yerinde (HTML kartlar dahil) bu metin geçiyor mu?"""
+        return metin in json.dumps(self.cevap["tree"], ensure_ascii=False)
+
+    def kpi_sayisi(self):
+        """styles.kpi_card() ile çizilmiş KPI kartlarının sayısı."""
+        metin = json.dumps(self.cevap["tree"], ensure_ascii=False)
+        return metin.count('class=\\"fr-kpi\\"') + metin.count('class=\\"fr-kpi vurgu\\"')
+
 
 @contextmanager
 def sunucu(db_yolu, gizli_ayarlar=""):

@@ -1,12 +1,14 @@
 """Bütün sayfaların kullandığı görünüm parçaları: biçimlendirme, kartlar, tablolar, grafikler."""
 
-from datetime import timedelta
+from datetime import date, timedelta
 from io import BytesIO
 from pathlib import Path
 
 import altair as alt
 import pandas as pd
 import streamlit as st
+
+import styles
 
 PROJE = Path(__file__).resolve().parent.parent
 AYLAR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -16,21 +18,43 @@ PARA = dict(min_value=0.0, step=1.0, format="%.2f")
 
 # ---------- Tema ----------
 
-def koyu_mod():
-    return st.context.theme.type == "dark"
-
-
 def zarar_rengi():
-    """Tablolarda eksi tutarların rengi (temadaki turuncu ile aynı)."""
-    return "#F08A4B" if koyu_mod() else "#C2410C"
+    """Tablolarda eksi tutarların rengi."""
+    return styles.RENK["zarar"]
+
+
+def kar_rengi():
+    """Tablolarda artı tutarların rengi."""
+    return styles.RENK["kar"]
+
+
+def ana_renk():
+    """Temanın ana (mavi) rengi; config.toml'daki primaryColor ile aynı."""
+    return styles.RENK["vurgu"]
 
 
 def tema_uygula():
-    """Şablondaki beyaz kartlar ve logo. Streamlit kaplarının arka plan ayarı olmadığı için anahtarı
-    "kart_" ile başlayan kaplara zemin rengi verilir; diğer tüm renkler .streamlit/config.toml'dadır."""
-    koyu = koyu_mod()
-    st.html(f"<style>[class*='st-key-kart_'] {{ background: {'#181C22' if koyu else '#FFFFFF'}; }}</style>")
-    st.logo(str(PROJE / "varliklar" / f"logo_{'koyu' if koyu else 'acik'}.svg"), size="large")
+    """"Gece Terminali" görünümünün ortak CSS'i (styles.py). Renklerin çoğu .streamlit/config.toml'dadır."""
+    styles.inject_css()
+
+
+def menu_hazirla(sayaclar=None):
+    """Kenar çubuğu: logo ve menüdeki sayaçlar ({url_yolu: sayı})."""
+    st.logo(str(PROJE / "varliklar" / "logo.svg"), size="large")
+    styles.inject_css(sayaclar, yalnizca_sayaclar=True)
+
+
+def durum_karti():
+    """Kenar çubuğunun altındaki küçük durum kartı: veriler nerede, bugünün yedeği alındı mı?"""
+    import veritabani as db
+    if not db.yerel_mi():
+        styles.durum_karti("İnternet veritabanına bağlı")
+        return
+    yedek = db.VERITABANI_YOLU.parent / "yedekler" / f"otomatik_{date.today().isoformat()}.db"
+    if yedek.exists():
+        styles.durum_karti("Bilgisayardaki dosya · bugünün yedeği alındı")
+    else:
+        styles.durum_karti("Bilgisayardaki dosya · bugün yedek yok", styles.RENK["uyari"])
 
 
 # ---------- Biçimlendirme ----------
@@ -57,13 +81,17 @@ def tablo_bicimi(df, para=(), yuzdeler=(), tarih=(), kar=(), sifir_bos=()):
     def bos_ya_da(bicimle, sifir_de_bos=False):
         return lambda v: "—" if pd.isna(v) or (sifir_de_bos and v == 0) else bicimle(v)
 
-    bicim = {**{s: bos_ya_da(tl, s in sifir_bos) for s in para},
+    def isaretli(v):
+        return ("+" if v > 0 else "") + tl(v)
+
+    bicim = {**{s: bos_ya_da(isaretli if s in kar else tl, s in sifir_bos) for s in para},
              **{s: bos_ya_da(yuzde, s in sifir_bos) for s in yuzdeler},
              **{s: bos_ya_da(tr_tarih) for s in tarih}}
     stil = df.style.format(bicim)
     if kar:
-        renk = zarar_rengi()
-        stil = stil.map(lambda v: f"color: {renk}" if pd.notna(v) and v < 0 else "", subset=list(kar))
+        eksi, arti = zarar_rengi(), kar_rengi()
+        stil = stil.map(lambda v: "" if pd.isna(v) or v == 0 else f"color: {eksi if v < 0 else arti}",
+                        subset=list(kar))
     return stil
 
 
@@ -79,11 +107,11 @@ def kart(ad, **ayarlar):
     return st.container(border=True, key=f"kart_{ad}", **ayarlar)
 
 
-def sayfa_basligi(baslik, aciklama):
-    """Sol tarafta başlık + açıklama; sağdaki sütunu (butonlar vb. için) döndürür."""
-    sol, sag = st.columns([3, 2], vertical_alignment="bottom")
-    sol.title(baslik, anchor=False)
-    sol.caption(aciklama)
+def sayfa_basligi(baslik, aciklama, rozet=None, oran=(3, 2)):
+    """Sol tarafta başlık + açıklama (güvenli HTML olabilir); sağdaki sütunu (butonlar vb. için) döndürür."""
+    sol, sag = st.columns(list(oran), vertical_alignment="center")
+    with sol:
+        styles.baslik(baslik, aciklama, rozet)
     return sag
 
 
@@ -92,12 +120,9 @@ def sag_butonlar(sutun):
     return sutun.container(horizontal=True, horizontal_alignment="right")
 
 
-def ozet_kartlari(kartlar, ad):
-    """Üstteki özet kartları: (başlık, değer, alt yazı) listesi."""
-    for i, (sutun, (baslik, deger, ipucu)) in enumerate(zip(st.columns(len(kartlar)), kartlar)):
-        with sutun, kart(f"{ad}_{i}", height="stretch"):
-            st.metric(baslik, deger)
-            st.caption(ipucu)
+def ozet_kartlari(kartlar, ad=None):
+    """Üstteki KPI kartları. Her kart (başlık, değer, alt yazı) ya da styles.kpi_card() ayarları sözlüğüdür."""
+    styles.kpi_satiri([styles.kpi_card(**k) if isinstance(k, dict) else styles.kpi_card(*k) for k in kartlar])
 
 
 def mesaji_goster(anahtar):
@@ -110,25 +135,21 @@ def mesaji_goster(anahtar):
             st.error(metin, icon=":material/error:")
 
 
-def bos_durum(metin, ikon=":material/inbox:"):
-    st.info(metin, icon=ikon)
-
-
-TESPIT_STILI = {"iyi": ("blue", ":material/check_circle:"),
-                "uyari": ("orange", ":material/warning:"),
-                "bilgi": ("gray", ":material/info:")}
+def bos_durum(metin, ikon=None):
+    """Boş durum: kesik çizgili koyu kart. Metindeki **kalın** yazılar korunur."""
+    parcalar = styles.kacis(metin).split("**")
+    guvenli = "".join(f"<b>{p}</b>" if i % 2 else p for i, p in enumerate(parcalar)).replace("\n", "<br>")
+    styles.bos_kart(guvenli)
 
 
 def tespitleri_goster(tespitler):
-    for tur, metin in tespitler:
-        renk, ikon = TESPIT_STILI[tur]
-        st.markdown(f":{renk}[{ikon}] {metin}")
+    """Akıllı özet maddeleri: iyi ▲ yeşil, uyarı ▼ kırmızı, bilgi ● mavi."""
+    styles.tespitler_html(tespitler)
 
 
-def claude_a_sor(metin):
+def claude_a_sor(metin, baslik="Claude'a sor: internetten fiyat araştırmasıyla ayrıntılı yorum"):
     """Verileri ve hazır soruyu kopyalanabilir gösterir; kullanıcı claude.ai'ye yapıştırır (ek ücret yok)."""
-    with st.expander("Claude'a sor: internetten fiyat araştırmasıyla ayrıntılı yorum",
-                     icon=":material/travel_explore:"):
+    with st.expander(baslik, icon=":material/travel_explore:"):
         st.markdown("1. Aşağıdaki kutunun sağ üstündeki **kopyala** simgesine tıkla.\n"
                     "2. **claude.ai'yi aç** düğmesine bas, metni yapıştırıp gönder.\n\n"
                     "Ek ücret yoktur; mevcut Claude hesabınla çalışır. Cevap claude.ai'de görünür.")
@@ -198,6 +219,32 @@ def haftalik_kar_grafigi(df, baslangic, bitis, yukseklik=320, eksen_basligi="Haf
         "hafta", eksen_basligi, yukseklik=yukseklik,
         aciklama="Haftalara göre net kâr çubuk grafiği",
     )
+
+
+def son_haftalar_grafigi(df, bugun, hafta_sayisi=4, yukseklik=210):
+    """Son haftaların (pazartesiden başlayan) net kârı: bu hafta ana renkte, öncekiler koyu; tutarlar
+    çubukların üstünde. Görünüm: tasarim/01-genel-bakis.html."""
+    bu_hafta = pd.Timestamp(bugun - timedelta(days=bugun.weekday()))
+    haftalar = [bu_hafta - pd.Timedelta(weeks=i) for i in range(hafta_sayisi - 1, -1, -1)]
+    veri = df.assign(hafta=df["tarih"] - pd.to_timedelta(df["tarih"].dt.day_of_week, unit="D"))
+    toplam = veri.groupby("hafta")["net_kar"].sum().reindex(haftalar, fill_value=0.0)
+    tablo = pd.DataFrame({
+        "hafta": [f"{h.day} {AYLAR[h.month - 1][:3]}" for h in toplam.index],
+        "net_kar": toplam.values,
+        "etiket": [styles.para(v) for v in toplam.values],
+        "renk": [styles.RENK["vurgu"] if h == bu_hafta else "#24335A" for h in toplam.index],
+    })
+    x = alt.X("hafta:N", sort=None, title=None, axis=alt.Axis(labelAngle=0, domain=True, ticks=False,
+                                                              labelColor=styles.RENK["soluk"], labelFontSize=12,
+                                                              domainColor="#232937"))
+    taban = alt.Chart(tablo).encode(x=x)
+    cubuk = taban.mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
+        y=alt.Y("net_kar:Q", title=None, axis=None), color=alt.Color("renk:N", scale=None),
+        tooltip=[alt.Tooltip("hafta:N", title="Hafta başı"), alt.Tooltip("etiket:N", title="Net kâr")])
+    yazi = taban.mark_text(dy=-8, font="JetBrains Mono", fontSize=12, color=styles.RENK["metin2"]).encode(
+        y=alt.Y("net_kar:Q"), text="etiket:N")
+    grafik = (cubuk + yazi).properties(height=yukseklik, background="transparent").configure_view(stroke=None)
+    st.altair_chart(grafik, width="stretch", alt="Son haftaların net kârı çubuk grafiği")
 
 
 # ---------- Excel ----------

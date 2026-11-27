@@ -5,6 +5,8 @@ from datetime import date
 import pandas as pd
 import streamlit as st
 
+import fiyat
+import styles
 import veritabani as db
 from arayuz.ortak import PARA, secenekler, tl, yuzde
 
@@ -157,42 +159,6 @@ def satis_formu(onek, kayit=None, en_fazla_adet=None):
             "durum": durum, "kategori": kategori, "kaynak": kaynak, "notlar": notlar}
 
 
-def hizli_satis_formu(onek):
-    """Genel Bakış'taki kısa form (şablon düzeni); tarih bugün olarak kaydedilir."""
-    yeni_form_hazirla(onek)
-    st.text_input("Ürün", key=f"{onek}_urun", placeholder="Örn. Laptop standı")
-    st.radio("Durum", db.DURUMLAR, key=f"{onek}_durum", horizontal=True)
-    # Her satır ayrı sütun çifti: telefonda alanlar doğru sırayla alt alta dizilir
-    c1, c2 = st.columns(2)
-    alis = c1.number_input("Geliş (alış) fiyatı ₺", key=f"{onek}_alis", **PARA)
-    satis = c2.number_input("Gidiş (satış) fiyatı ₺", key=f"{onek}_satis", **PARA,
-                            on_change=komisyonu_hesapla, args=(onek,))
-    c1, c2 = st.columns(2)
-    c1.selectbox("Satış kanalı", db.kanal_adlari(), key=f"{onek}_pazar",
-                 on_change=komisyonu_hesapla, args=(onek,))
-    adet = c2.number_input("Adet", min_value=1, step=1, key=f"{onek}_adet")
-    c1, c2 = st.columns(2)
-    kargo = c1.number_input("Kargo ₺ / adet", key=f"{onek}_kargo", **PARA)
-    komisyon = c2.number_input("Komisyon ₺ / adet", key=f"{onek}_komisyon", **PARA)
-    st.selectbox("Nereden alındı", secenekler([], db.kullanilan_degerler("kaynak")),
-                 key=f"{onek}_kaynak", accept_new_options=True, placeholder=KAYNAK_IPUCU)
-    kar_onizleme(alis, satis, kargo, komisyon, adet)
-
-
-def hizli_satisi_kaydet(onek):
-    """Hızlı formun Kaydet düğmesi (callback)."""
-    s = _durum()
-    kayit = formdaki_satis(onek)
-    hata = kaydi_dogrula(kayit)
-    if hata:
-        s[f"{onek}_mesaj"] = ("hata", hata)
-        return
-    db.satis_ekle(kayit)
-    s[f"{onek}_mesaj"] = ("ok", f"“{kayit['urun_adi'].strip()}” kaydedildi. Net kâr: {_net_kar_metni(kayit)}")
-    for anahtar, deger in form_varsayilanlari(onek).items():
-        s[anahtar] = deger
-
-
 # ---------- Satış pencereleri ----------
 
 @st.dialog("Yeni satış", width="large")
@@ -261,38 +227,46 @@ def satis_duzenle_penceresi(kayit_id):
 
 # ---------- Elimdekiler (stok) ----------
 
-def stok_formu(onek, kayit=None):
-    """Elimdekiler'e ürün ekleme/düzenleme formu. Girilen değerleri döndürür."""
+def stok_formu(onek, kayit=None, yeni=None):
+    """Elimdekiler'e ürün ekleme/düzenleme formu. Girilen değerleri döndürür. `yeni=True` ise `kayit`
+    yalnızca başlangıç değerleridir (yeni ürün, adet alanı "Adet" olur)."""
     k = kayit or {}
+    duzenleme = kayit is not None and not yeni
     kategoriler = secenekler(db.KATEGORILER, db.kullanilan_degerler("kategori"), k.get("kategori"))
     kaynaklar = secenekler([], db.kullanilan_degerler("kaynak"), k.get("kaynak"))
 
     def secim(liste, deger):
         return {"index": liste.index(deger)} if deger in liste else {"index": None}
 
-    c1, c2 = st.columns([3, 2], vertical_alignment="bottom")
-    urun = c1.text_input("Ürün adı", key=f"{onek}_urun", value=k.get("urun_adi", ""),
-                         placeholder="Örn. Deri çanta")
-    durum = c2.radio("Durum", db.DURUMLAR, key=f"{onek}_durum", horizontal=True,
-                     index=db.DURUMLAR.index(k.get("durum", db.DURUMLAR[0])))
-    c1, c2, c3 = st.columns([2, 2, 1])
+    # Düzen: tasarim/03-elimdekiler.html — Alış fiyatı ile Adet yan yana, aralarında başka kutu yok
+    urun = st.text_input("Ürün adı", key=f"{onek}_urun", value=k.get("urun_adi", ""), placeholder="Örn. Deri çanta")
+    durum = st.segmented_control("Durum", db.DURUMLAR, key=f"{onek}_durum", required=True, width="stretch",
+                                 default=k.get("durum") if k.get("durum") in db.DURUMLAR else db.DURUMLAR[0])
+    c1, c2 = st.columns([3, 2])
     alis = c1.number_input("Alış fiyatı ₺ / adet", key=f"{onek}_alis", value=float(k.get("alis_fiyati", 0)), **PARA)
-    tarih = c2.date_input("Alış tarihi", key=f"{onek}_tarih", value=k.get("alis_tarihi", date.today()),
-                          format="DD.MM.YYYY")
-    adet = c3.number_input("Elde kalan adet" if kayit else "Adet", key=f"{onek}_adet", min_value=0 if kayit else 1,
-                           step=1, value=int(k.get("kalan", 1)))
+    adet = c2.number_input("Elde kalan adet" if duzenleme else "Adet", key=f"{onek}_adet",
+                           min_value=0 if duzenleme else 1, step=1, value=int(k.get("kalan", 1)))
     c1, c2 = st.columns(2)
     kaynak = c1.selectbox("Nereden alındı", kaynaklar, key=f"{onek}_kaynak", accept_new_options=True,
-                          placeholder=KAYNAK_IPUCU, **secim(kaynaklar, k.get("kaynak")))
+                          placeholder="Toptancı A, ilan…", **secim(kaynaklar, k.get("kaynak")))
     kategori = c2.selectbox("Kategori", kategoriler, key=f"{onek}_kategori", accept_new_options=True,
                             placeholder="Seç veya yaz", **secim(kategoriler, k.get("kategori")))
-    c1, c2 = st.columns(2)
-    hedef = c1.number_input("Hedef satış fiyatı ₺ (isteğe bağlı)", key=f"{onek}_hedef",
+    c1, c2 = st.columns([3, 2])
+    hedef = c1.number_input("Hedef satış fiyatı ₺", key=f"{onek}_hedef",
                             value=float(k.get("hedef_fiyat", 0)), **PARA,
-                            help="Kaça satmayı düşünüyorsan yaz; satarken fiyat kutusu bununla dolu gelir. "
+                            help="İsteğe bağlı. Kaça satmayı düşünüyorsan yaz; satarken fiyat kutusu bununla dolu gelir. "
                                  "Fiyat Hesapla sayfası uygun fiyatı bulmana yardım eder.")
-    notlar = c2.text_input("Not", key=f"{onek}_notlar", value=k.get("notlar", ""),
-                           placeholder="Örn. Kutusu yok, hafif çizik")
+    tarih = c2.date_input("Alış tarihi", key=f"{onek}_tarih", value=k.get("alis_tarihi", date.today()),
+                          format="DD.MM.YYYY")
+    notlar = st.text_input("Not", key=f"{onek}_notlar", value=k.get("notlar", ""),
+                           placeholder="Örn. kutusu yok, hafif çizik")
+    if hedef > 0 and alis > 0:
+        brut = (hedef - alis) * adet
+        renk = styles.kar_rengi(brut)
+        styles.not_kutusu(f"Hedef fiyattan satılırsa kalan: <b style=\"color:{renk}\">{styles.para(brut, 2, True)}"
+                          "</b> (kargo ve komisyon hariç).")
+    else:
+        styles.not_kutusu("Hedef fiyat girersen tahmini kâr burada görünür.")
     return {"urun_adi": urun, "durum": durum, "alis_fiyati": alis, "alis_tarihi": tarih, "adet": adet,
             "kalan": adet, "kaynak": kaynak, "kategori": kategori, "hedef_fiyat": hedef, "notlar": notlar}
 
@@ -305,17 +279,16 @@ def _stok_dogrula(kayit):
     return None
 
 
-@st.dialog("Elimdekiler'e ürün ekle", width="large")
-def stok_ekle_penceresi():
-    st.caption("Aldığın ama henüz satmadığın ürünü kaydet. Satınca Elimdekiler sayfasından tek tıkla satışa "
-               "dönüştürebilirsin.")
+def stok_ekle_paneli():
+    """Elimdekiler sayfasının sağındaki "Ürün ekle" formu (açılır pencere değil, sayfada sürekli açık)."""
     kayit = stok_formu("stok_yeni")
-    if st.button("Ekle", icon=":material/add:", type="primary"):
+    if st.button("Elimdekiler'e ekle", icon=":material/add:", type="primary", width="stretch", key="stok_yeni_ekle"):
         hata = _stok_dogrula(kayit)
         if hata:
             st.error(hata, icon=":material/error:")
             return
         db.stok_ekle(kayit)
+        formu_sifirla("stok_yeni")
         st.session_state.stok_mesaj = ("ok", f"“{kayit['urun_adi'].strip()}” Elimdekiler'e eklendi.")
         st.rerun()
 
@@ -385,18 +358,182 @@ def stoktan_sat_penceresi(stok_id):
         st.rerun()
 
 
+# ---------- Fırsat Takibi ----------
+
+OTOMATIK_KANAL = "En kârlı kanal (otomatik)"
+
+
+def firsat_kar_onizleme(alis, kargo, piyasa, kanal):
+    if piyasa <= 0:
+        st.caption("Tahmini satış fiyatını girince net kâr burada hesaplanır. Bilmiyorsan boş bırak; listeye "
+                   "ekledikten sonra “Claude'a sor” ile öğrenebilirsin.")
+        return
+    sonuc = fiyat.en_iyi_kanal(alis, kargo, piyasa, db.kanallari_getir(), kanal)
+    renk = "blue" if sonuc["net_kar"] >= 0 else "orange"
+    st.markdown(f"{sonuc['kanal']} kanalında satarsan adet başına net kâr: :{renk}[**{tl(sonuc['net_kar'])}**]  ·  "
+                f"Kâr marjı: :{renk}[**{yuzde(sonuc['marj'])}**]  ·  {fiyat.degerlendirme(sonuc['marj'])}",
+                help="Tahmini satış fiyatı − alış − kargo − kanal komisyonu. Komisyon oranları Ayarlar'dan gelir; "
+                     "otomatik seçimde elden satış hesaba katılmaz.")
+
+
+def firsat_formu(onek, kayit=None):
+    """Fırsat ekleme/düzenleme formu. Girilen değerleri döndürür."""
+    k = kayit or {}
+    kategoriler = secenekler(db.KATEGORILER, db.kullanilan_degerler("kategori"), k.get("kategori"))
+    kaynaklar = secenekler(["Sahibinden", "Dolap", "Letgo"], db.kullanilan_degerler("kaynak"), k.get("kaynak"))
+    kanallar = ["", *secenekler(db.kanal_adlari(), [], k.get("kanal") or None)]
+
+    def secim(liste, deger):
+        return {"index": liste.index(deger)} if deger in liste else {"index": None}
+
+    c1, c2 = st.columns([3, 2], vertical_alignment="bottom")
+    urun = c1.text_input("Ürün adı", key=f"{onek}_urun", value=k.get("urun_adi", ""),
+                         placeholder="Örn. iPhone 13 128 GB")
+    durum = c2.radio("Durum", db.DURUMLAR, key=f"{onek}_durum", horizontal=True,
+                     index=db.DURUMLAR.index(k.get("durum", db.DURUMLAR[0])))
+    c1, c2 = st.columns(2)
+    kaynak_turu = c1.selectbox("Nerede buldun", db.KAYNAK_TURLERI, key=f"{onek}_kaynak_turu",
+                               **secim(db.KAYNAK_TURLERI, k.get("kaynak_turu") or db.KAYNAK_TURLERI[0]))
+    kaynak = c2.selectbox("Site / satıcı / mağaza", kaynaklar, key=f"{onek}_kaynak", accept_new_options=True,
+                          placeholder="Örn. Sahibinden, Toptancı A, Teknosa", **secim(kaynaklar, k.get("kaynak")))
+    link = st.text_input("İlan / ürün linki (isteğe bağlı)", key=f"{onek}_link", value=k.get("link", ""),
+                         placeholder="https://…")
+    c1, c2, c3 = st.columns([2, 1, 2])
+    alis = c1.number_input("Alış fiyatı ₺ / adet", key=f"{onek}_alis", value=float(k.get("alis_fiyati", 0)), **PARA,
+                           help="İlandaki ya da toptancının istediği fiyat. Pazarlık edersen sonra güncelleyebilirsin.")
+    adet = c2.number_input("Adet", key=f"{onek}_adet", min_value=1, step=1, value=int(k.get("adet", 1)))
+    kargo = c3.number_input("Satarken kargo ₺ / adet", key=f"{onek}_kargo", **PARA,
+                            value=float(k.get("kargo", db.ayar_getir("varsayilan_kargo", "0"))))
+    c1, c2 = st.columns(2)
+    piyasa = c1.number_input("Tahmini satış fiyatı ₺ / adet", key=f"{onek}_piyasa", **PARA,
+                             value=float(k.get("piyasa_fiyati", 0)),
+                             help="Bu ürünü kaça satabileceğini düşünüyorsun? Bilmiyorsan 0 bırak.")
+    kanal = c2.selectbox("Satış kanalı", kanallar, key=f"{onek}_kanal", format_func=lambda a: a or OTOMATIK_KANAL,
+                         index=kanallar.index(k.get("kanal") or ""))
+    with st.expander("Ek bilgiler: kategori, not", expanded=bool(k.get("kategori") or k.get("notlar"))):
+        c1, c2 = st.columns(2)
+        kategori = c1.selectbox("Kategori", kategoriler, key=f"{onek}_kategori", accept_new_options=True,
+                                placeholder="Seç veya yaz", **secim(kategoriler, k.get("kategori")))
+        notlar = c2.text_input("Not", key=f"{onek}_notlar", value=k.get("notlar", ""),
+                               placeholder="Örn. Pil sağlığı %85, kutulu")
+    firsat_kar_onizleme(alis, kargo, piyasa, kanal)
+    return {"urun_adi": urun, "durum": durum, "kaynak_turu": kaynak_turu, "kaynak": kaynak, "link": link,
+            "alis_fiyati": alis, "adet": adet, "kargo": kargo, "piyasa_fiyati": piyasa, "kanal": kanal,
+            "kategori": kategori, "notlar": notlar}
+
+
+def _firsat_dogrula(kayit):
+    if not kayit["urun_adi"].strip():
+        return "Lütfen ürün adını yazın."
+    if kayit["alis_fiyati"] <= 0:
+        return "Alış fiyatı 0'dan büyük olmalı."
+    return None
+
+
+@st.dialog("Fırsat ekle", width="large")
+def firsat_ekle_penceresi():
+    st.caption("Gözüne kestirdiğin bir ürünü takip listene ekle. Uygulama her kanaldaki net kârı hesaplar.")
+    kayit = firsat_formu("firsat_yeni")
+    if st.button("Listeye ekle", icon=":material/add:", type="primary"):
+        hata = _firsat_dogrula(kayit)
+        if hata:
+            st.error(hata, icon=":material/error:")
+            return
+        st.session_state.ft_secili = db.firsat_ekle(kayit)
+        formu_sifirla("firsat_yeni")
+        st.session_state.firsat_mesaj = ("ok", f"“{kayit['urun_adi'].strip()}” takip listesine eklendi.")
+        st.rerun()
+
+
+def _firsat_kaydi(firsat_id):
+    df = db.firsatlari_getir()
+    r = df[df["id"] == firsat_id].iloc[0]
+    return {**{a: r[a] for a in ["urun_adi", "durum", "kategori", "kaynak_turu", "kaynak", "link", "kanal",
+                                 "notlar", "takip"]},
+            "alis_fiyati": float(r.alis_fiyati), "adet": int(r.adet), "kargo": float(r.kargo),
+            "piyasa_fiyati": float(r.piyasa_fiyati)}
+
+
+@st.dialog("Fırsatı düzenle", width="large")
+def firsat_duzenle_penceresi(firsat_id):
+    mevcut = _firsat_kaydi(firsat_id)
+    onek = f"firsat_duzenle_{firsat_id}"
+    kayit = firsat_formu(onek, mevcut)
+    if mevcut["takip"] == db.ALINDI:
+        st.caption(":material/inventory_2: Bu ürünü satın aldın; Elimdekiler'de duruyor.")
+    else:
+        secenek = [db.TAKIPTE, db.VAZGECILDI]
+        kayit["takip"] = st.radio("Takip durumu", secenek, key=f"{onek}_takip", horizontal=True,
+                                  index=secenek.index(mevcut["takip"]),
+                                  help="Vazgeçtiğin ürünler listeden kalkar ama silinmez; istersen geri alırsın.")
+    onay = f"firsat_sil_onay_{firsat_id}"
+    if st.session_state.get(onay):
+        st.warning(f"**{mevcut['urun_adi']}** takip listesinden silinsin mi? Satın aldıysan Elimdekiler'deki ürün "
+                   "silinmez.", icon=":material/warning:")
+        with st.container(horizontal=True):
+            if st.button("Evet, sil", type="primary"):
+                db.firsat_sil(firsat_id)
+                st.session_state.pop(onay, None)
+                st.session_state.firsat_mesaj = ("ok", "Fırsat silindi.")
+                st.rerun()
+            if st.button("Vazgeç"):
+                st.session_state.pop(onay, None)
+                st.rerun(scope="fragment")
+        return
+    with st.container(horizontal=True):
+        if st.button("Değişiklikleri kaydet", icon=":material/save:", type="primary"):
+            hata = _firsat_dogrula(kayit)
+            if hata:
+                st.error(hata, icon=":material/error:")
+                return
+            db.firsat_guncelle(firsat_id, kayit)
+            st.session_state.firsat_mesaj = ("ok", f"“{kayit['urun_adi'].strip()}” güncellendi.")
+            st.rerun()
+        if st.button("Sil", icon=":material/delete:"):
+            st.session_state[onay] = True
+            st.rerun(scope="fragment")
+
+
+@st.dialog("Satın aldım", width="large")
+def firsat_satin_al_penceresi(firsat_id):
+    f = _firsat_kaydi(firsat_id)
+    st.caption("Ürün Elimdekiler'e eklenir; tahmini satış fiyatı hedef fiyat olarak yazılır. Pazarlıkla daha "
+               "ucuza aldıysan alış fiyatını düzelt.")
+    stok = stok_formu(f"firsat_al_{firsat_id}", {
+        "urun_adi": f["urun_adi"], "durum": f["durum"], "kategori": f["kategori"], "kaynak": f["kaynak"],
+        "alis_fiyati": f["alis_fiyati"], "alis_tarihi": date.today(), "kalan": f["adet"],
+        "hedef_fiyat": f["piyasa_fiyati"], "notlar": f["notlar"]}, yeni=True)
+    if st.button("Elimdekiler'e ekle", icon=":material/inventory_2:", type="primary"):
+        hata = _stok_dogrula(stok)
+        if hata:
+            st.error(hata, icon=":material/error:")
+            return
+        db.firsati_satin_al(firsat_id, stok)
+        st.session_state.firsat_mesaj = ("ok", f"“{stok['urun_adi'].strip()}” Elimdekiler'e eklendi. "
+                                               "Satınca orada tek tıkla satışa dönüştürebilirsin.")
+        st.rerun()
+
+
 # ---------- Ek giderler ----------
 
-@st.dialog("Gider ekle")
-def gider_ekle_penceresi():
-    st.caption("Belirli bir ürüne ait olmayan masraflar: ambalaj malzemesi, ilan öne çıkarma, mağaza aboneliği…")
+YENI_KATEGORI = "+ Yeni"
+
+
+def gider_ekle_paneli():
+    """Giderler sayfasının sağındaki "Gider ekle" formu (sayfada sürekli açık). Görünüm: tasarim/05-giderler.html."""
     tarih = st.date_input("Tarih", value=date.today(), format="DD.MM.YYYY", key="gider_tarih")
-    kategori = st.selectbox("Kategori", db.gider_kategorileri(), key="gider_kategori", accept_new_options=True)
+    kategori = st.pills("Kategori", [*db.gider_kategorileri(), YENI_KATEGORI], key="gider_kategori",
+                        default=db.GIDER_KATEGORILERI[0])
+    if kategori == YENI_KATEGORI:
+        kategori = st.text_input("Yeni kategori adı", key="gider_yeni_kategori", placeholder="Örn. Etiket yazıcı")
     aciklama = st.text_input("Açıklama (isteğe bağlı)", key="gider_aciklama", placeholder="Örn. 100'lü kargo poşeti")
     tutar = st.number_input("Tutar ₺", key="gider_tutar", **PARA)
-    if st.button("Kaydet", icon=":material/save:", type="primary"):
+    if st.button("Kaydet", type="primary", width="stretch", key="gider_kaydet"):
         if tutar <= 0:
             st.error("Tutar 0'dan büyük olmalı.", icon=":material/error:")
+            return
+        if not (kategori or "").strip():
+            st.error("Bir kategori seç.", icon=":material/error:")
             return
         db.gider_ekle({"tarih": tarih, "kategori": kategori, "aciklama": aciklama, "tutar": tutar})
         formu_sifirla("gider")

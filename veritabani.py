@@ -26,6 +26,9 @@ KATEGORILER = ["Elektronik", "Giyim & Aksesuar", "Ev & Yaşam", "Kitap & Hobi", 
 VARSAYILAN_KANALLAR = ["Trendyol", "Hepsiburada", "Amazon TR", "Kendi sitem",
                        "Sahibinden", "Dolap", "Letgo", "Elden"]
 GIDER_KATEGORILERI = ["Ambalaj", "İlan / öne çıkarma", "Mağaza aboneliği", "Ulaşım", "Diğer"]
+# Fırsat Takibi: ürünü nerede bulduğun ve takip durumu
+KAYNAK_TURLERI = ["İkinci el ilan", "Toptancı / ithalatçı", "Mağaza indirimi", "Diğer"]
+TAKIPTE, ALINDI, VAZGECILDI = "Takipte", "Alındı", "Vazgeçildi"
 
 
 class StokYetersiz(ValueError):
@@ -113,6 +116,13 @@ sa.Table("stok", _sema, _kimlik(), sa.Column("urun_adi", sa.Text, nullable=False
          _sayi("hedef_fiyat", "0"), _metin("notlar"), sqlite_autoincrement=True)
 sa.Table("giderler", _sema, _kimlik(), sa.Column("tarih", sa.Text, nullable=False), _metin("kategori"),
          _metin("aciklama"), _sayi("tutar"), sqlite_autoincrement=True)
+# Fırsat Takibi: almayı düşündüğün ürünler. piyasa_fiyati: tahmini satış fiyatı (0 = henüz bilinmiyor);
+# kanal: satmayı düşündüğün kanal ("" = en kârlı kanal otomatik seçilir); stok_id: satın alınınca stok kaydı.
+sa.Table("firsatlar", _sema, _kimlik(), sa.Column("urun_adi", sa.Text, nullable=False), _metin("durum", "Sıfır"),
+         _metin("kategori"), _metin("kaynak_turu"), _metin("kaynak"), _metin("link"), _sayi("alis_fiyati"),
+         _sayi("adet", "1", sa.Integer), _sayi("kargo", "0"), _sayi("piyasa_fiyati", "0"), _metin("kanal"),
+         _metin("notlar"), sa.Column("eklenme_tarihi", sa.Text, nullable=False), _metin("takip", "Takipte"),
+         sa.Column("stok_id", sa.Integer), sqlite_autoincrement=True)
 
 # 1. aşamadan kalan veritabanlarında satislar tablosunda olmayan sütunlar (açılışta eklenir)
 _SONRADAN_EKLENEN_SUTUNLAR = {
@@ -230,8 +240,10 @@ def satis_sil(kayit_id):
 
 def satislari_getir(baslangic: date | None = None, bitis: date | None = None):
     """Satışları hesaplanmış ciro, maliyet, net kâr ve marj sütunlarıyla döndürür."""
-    sql = ("SELECT s.*, st.alis_tarihi AS stok_alis_tarihi FROM satislar s "
-           "LEFT JOIN stok st ON st.id = s.stok_id WHERE 1=1")
+    # tahmini_fiyat: ürün Fırsat Takibi'nden alındıysa orada tahmin edilen satış fiyatı (tahmin isabeti için)
+    sql = ("SELECT s.*, st.alis_tarihi AS stok_alis_tarihi, f.piyasa_fiyati AS tahmini_fiyat FROM satislar s "
+           "LEFT JOIN stok st ON st.id = s.stok_id "
+           "LEFT JOIN firsatlar f ON f.stok_id = s.stok_id AND s.stok_id IS NOT NULL WHERE 1=1")
     parametreler = {}
     if baslangic:
         sql += " AND s.tarih >= :bas"
@@ -252,11 +264,12 @@ def satislari_getir(baslangic: date | None = None, bitis: date | None = None):
 
 
 def kullanilan_degerler(sutun):
-    """Satışlarda ve stokta daha önce girilmiş farklı değerler (form önerileri için)."""
+    """Satışlarda, stokta ve fırsat listesinde daha önce girilmiş farklı değerler (form önerileri için)."""
     assert sutun in ("kategori", "kaynak")
     return [s[0] for s in _sorgula(
         f"SELECT {sutun} FROM satislar WHERE {sutun} != '' UNION "
-        f"SELECT {sutun} FROM stok WHERE {sutun} != '' ORDER BY 1")]
+        f"SELECT {sutun} FROM stok WHERE {sutun} != '' UNION "
+        f"SELECT {sutun} FROM firsatlar WHERE {sutun} != '' ORDER BY 1")]
 
 
 # ---------- Elimdekiler (stok) ----------
@@ -274,13 +287,16 @@ def _stok_degerleri(kayit):
     }
 
 
-def stok_ekle(kayit):
+def _stok_ekle(baglanti, kayit):
+    """Yeni stok kaydını ekler ve kimliğini (id) döndürür."""
     adet = int(kayit["adet"])
-    _calistir(
-        """INSERT INTO stok (urun_adi, durum, kategori, kaynak, alis_fiyati, alis_tarihi, hedef_fiyat, notlar,
-           adet, kalan) VALUES (:urun_adi, :durum, :kategori, :kaynak, :alis_fiyati, :alis_tarihi,
-           :hedef_fiyat, :notlar, :adet, :adet)""",
-        **_stok_degerleri(kayit), adet=adet)
+    sonuc = baglanti.execute(_sema.tables["stok"].insert().values(**_stok_degerleri(kayit), adet=adet, kalan=adet))
+    return sonuc.inserted_primary_key[0]
+
+
+def stok_ekle(kayit):
+    with _motor().begin() as baglanti:
+        return _stok_ekle(baglanti, kayit)
 
 
 def stok_guncelle(stok_id, kayit):
@@ -307,6 +323,73 @@ def stoklari_getir(sadece_eldekiler=True, bugun=None):
     df["alis_tarihi"] = pd.to_datetime(df["alis_tarihi"])
     df["bekleme_gun"] = (pd.Timestamp(bugun or date.today()) - df["alis_tarihi"]).dt.days
     df["sermaye"] = df["alis_fiyati"] * df["kalan"]
+    return df
+
+
+# ---------- Fırsat Takibi (almayı düşündüğün ürünler) ----------
+
+def _link(adres):
+    adres = (adres or "").strip()
+    if adres and not adres.lower().startswith(("http://", "https://")):
+        adres = "https://" + adres
+    return adres
+
+
+def _firsat_degerleri(kayit):
+    return {
+        "urun_adi": kayit["urun_adi"].strip(),
+        "durum": kayit.get("durum") or DURUMLAR[0],
+        "kategori": (kayit.get("kategori") or "").strip(),
+        "kaynak_turu": kayit.get("kaynak_turu") or "",
+        "kaynak": (kayit.get("kaynak") or "").strip(),
+        "link": _link(kayit.get("link")),
+        "alis_fiyati": float(kayit["alis_fiyati"]),
+        "adet": int(kayit.get("adet") or 1),
+        "kargo": float(kayit.get("kargo") or 0),
+        "piyasa_fiyati": float(kayit.get("piyasa_fiyati") or 0),
+        "kanal": kayit.get("kanal") or "",
+        "notlar": (kayit.get("notlar") or "").strip(),
+    }
+
+
+def firsat_ekle(kayit):
+    with _motor().begin() as baglanti:
+        sonuc = baglanti.execute(_sema.tables["firsatlar"].insert().values(
+            **_firsat_degerleri(kayit), eklenme_tarihi=(kayit.get("eklenme_tarihi") or date.today()).isoformat(),
+            takip=TAKIPTE))
+        return sonuc.inserted_primary_key[0]
+
+
+def firsat_guncelle(firsat_id, kayit):
+    """Bilgileri günceller. `kayit["takip"]` verilirse takip durumu da değişir (Takipte / Vazgeçildi)."""
+    degerler = _firsat_degerleri(kayit)
+    takip = kayit.get("takip")
+    _calistir(
+        "UPDATE firsatlar SET " + ", ".join(f"{ad}=:{ad}" for ad in degerler)
+        + (", takip=:takip" if takip else "") + " WHERE id=:id",
+        **degerler, **({"takip": takip} if takip else {}), id=firsat_id)
+
+
+def firsat_sil(firsat_id):
+    """Fırsat kaydını siler. Satın alındıysa Elimdekiler'deki ürün ve satışları silinmez."""
+    _calistir("DELETE FROM firsatlar WHERE id=:id", id=firsat_id)
+
+
+def firsati_satin_al(firsat_id, stok_kaydi):
+    """Fırsatı satın alındı olarak işaretler ve ürünü Elimdekiler'e ekler (tek işlemde). Stok kimliğini döndürür."""
+    with _motor().begin() as baglanti:
+        stok_id = _stok_ekle(baglanti, stok_kaydi)
+        baglanti.execute(sa.text("UPDATE firsatlar SET takip=:takip, stok_id=:stok_id WHERE id=:id"),
+                         {"takip": ALINDI, "stok_id": stok_id, "id": firsat_id})
+        return stok_id
+
+
+def firsatlari_getir(takip=None, bugun=None):
+    """Fırsat listesi; `takip` verilirse yalnızca o durumdakiler. Listede bekleme süresi (gün) eklenir."""
+    df = _tablo_oku("SELECT * FROM firsatlar" + (" WHERE takip=:takip" if takip else "")
+                    + " ORDER BY eklenme_tarihi DESC, id DESC", **({"takip": takip} if takip else {}))
+    df["eklenme_tarihi"] = pd.to_datetime(df["eklenme_tarihi"])
+    df["bekleme_gun"] = (pd.Timestamp(bugun or date.today()) - df["eklenme_tarihi"]).dt.days
     return df
 
 

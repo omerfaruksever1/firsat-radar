@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Gece Terminali — Raporlar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#8FB0FF;text-decoration:none}a:hover{color:#C2D3FF}
+</style>
+<style>body{background:#0B0D12;font-family:Inter,system-ui,sans-serif}</style>
+</head>
+<body>
+<div style="width:1440px;height:900px;display:flex;background:#0B0D12;font-family:Inter,system-ui,sans-serif;color:#E7EAF0;font-size:14px">
+  <nav style="width:232px;flex:none;height:900px;box-sizing:border-box;padding:24px 16px;background:#0F1218;border-right:1px solid #1E232D;display:flex;flex-direction:column;gap:22px;font-size:14px;color:#AEB6C4">
+<div style="font-size:20px;font-weight:700;padding:0 10px;color:#E7EAF0">Fırsat<span style="color:#4C7DFF">Radar</span></div>
+<div style="display:flex;flex-direction:column;gap:2px"><a href="01-genel-bakis.html" style="display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:8px;text-decoration:none;color:#AEB6C4;">Genel Bakış</a></div>
+<div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:11px;font-weight:600;letter-spacing:0.8px;color:#6B7486;padding:0 10px 6px">ALIM-SATIM</div><a href="02-urun-taramalari.html" style="display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:8px;text-decoration:none;color:#AEB6C4;">Ürün Taramaları<span style="font-size:12px;padding:1px 7px;border-radius:10px;background:#1E2A44;color:#8FB0FF">5</span></a><a href="03-elimdekiler.html" style="display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:8px;text-decoration:none;color:#AEB6C4;">Elimdekiler<span style="font-size:12px;padding:1px 7px;border-radius:10px;background:#1E2A44;color:#8FB0FF">7</span></a><a href="04-satislarim.html" style="display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:8px;text-decoration:none;color:#AEB6C4;">Satışlarım</a><a href="05-giderler.html" style="display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:8px;text-decoration:none;color:#AEB6C4;">Giderler</a></div>
+<div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:11px;font-weight:600;letter-spacing:0.8px;color:#6B7486;padding:0 10px 6px">ANALİZ</div><a href="06-raporlar.html" style="display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:8px;text-decoration:none;background:#1A2030;color:#fff;font-weight:600;box-shadow:inset 2px 0 0 #4C7DFF;">Raporlar</a><a href="07-fiyat-hesapla.html" style="display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:8px;text-decoration:none;color:#AEB6C4;">Fiyat Hesapla</a></div>
+<div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:11px;font-weight:600;letter-spacing:0.8px;color:#6B7486;padding:0 10px 6px">UYGULAMA</div><a href="08-ayarlar.html" style="display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:8px;text-decoration:none;color:#AEB6C4;">Ayarlar</a><a href="09-yardim.html" style="display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:8px;text-decoration:none;color:#AEB6C4;">Yardım</a></div>
+<div style="margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:#131722;border:1px solid #1E232D"><span style="width:8px;height:8px;border-radius:4px;background:#3DD68C"></span><span style="font-size:12px;color:#8C95A5">Son tarama 09:00 · yedek alındı</span></div>
+</nav>
+  <main style="flex:1;min-width:0;box-sizing:border-box;padding:28px 36px;display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <h1 style="margin:0;font-size:26px;font-weight:700;letter-spacing:-0.5px">Raporlar</h1>
+        <div style="margin-top:4px;color:#8C95A5">Kasım 2026, Ekim 2026 ile karşılaştırılıyor <span style="margin-left:6px;font-size:12px;padding:2px 8px;border-radius:10px;border:1px solid #2A3140;color:#6B7486">örnek veri</span></div>
+      </div>
+      <div style="display:flex;gap:4px;padding:3px;border:1px solid #232937;border-radius:9px">
+        <button type="button" style="height:32px;padding:0 12px;border:0;border-radius:6px;background:#1A2030;color:#fff;font:inherit;font-size:13px">Bu ay</button>
+        <button type="button" style="height:32px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:#8C95A5;font:inherit;font-size:13px">Geçen ay</button>
+        <button type="button" style="height:32px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:#8C95A5;font:inherit;font-size:13px">Son 30 gün</button>
+        <button type="button" style="height:32px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:#8C95A5;font:inherit;font-size:13px">Bu yıl</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px">
+      <div style="padding:16px;border:1px solid #1F2531;border-radius:12px;background:#11151C"><div style="color:#8C95A5">Ciro</div><div style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:22px">₺18.420</div><div style="margin-top:4px;font-size:13px;color:#3DD68C">▲ %12</div></div>
+      <div style="padding:16px;border:1px solid #1F2531;border-radius:12px;background:#11151C"><div style="color:#8C95A5">Satış kârı</div><div style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:22px">₺4.600</div><div style="margin-top:4px;font-size:13px;color:#3DD68C">▲ %9</div></div>
+      <div style="padding:16px;border:1px solid #1F2531;border-radius:12px;background:#11151C"><div style="color:#8C95A5">Giderler</div><div style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:22px">−₺640</div><div style="margin-top:4px;font-size:13px;color:#F26D6D">▲ %18</div></div>
+      <div style="padding:16px;border:1px solid #4C7DFF;border-radius:12px;background:#121A2C"><div style="color:#AEB6C4">Gerçek kâr</div><div style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:22px;color:#3DD68C">₺3.960</div><div style="margin-top:4px;font-size:13px;color:#AEB6C4">Hedef ₺5.000 · %79</div></div>
+      <div style="padding:16px;border:1px solid #1F2531;border-radius:12px;background:#11151C"><div style="color:#8C95A5">Kâr marjı</div><div style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:22px">%21,5</div><div style="margin-top:4px;font-size:13px;color:#F26D6D">▼ 0,9 puan</div></div>
+    </div>
+    <div style="display:flex;gap:14px;flex:1;min-height:0">
+      <div style="flex:1.6;min-width:0;display:flex;flex-direction:column;gap:14px">
+        <section style="flex:1;padding:18px 20px;border:1px solid #1F2531;border-radius:12px;background:#11151C;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between"><h2 style="margin:0;font-size:16px;font-weight:600">Günlük net kâr</h2><span style="display:flex;gap:14px;font-size:13px;color:#8C95A5"><span><span style="color:#4C7DFF">■</span> Kasım</span><span><span style="color:#2F3A52">■</span> Ekim</span></span></div>
+          <div style="flex:1;display:flex;align-items:flex-end;gap:6px;border-bottom:1px solid #232937">
+            <div style="flex:1;height:20%;background:#2F3A52;border-radius:3px 3px 0 0"></div><div style="flex:1;height:34%;background:#4C7DFF;border-radius:3px 3px 0 0"></div>
+            <div style="flex:1;height:42%;background:#2F3A52;border-radius:3px 3px 0 0"></div><div style="flex:1;height:30%;background:#4C7DFF;border-radius:3px 3px 0 0"></div>
+            <div style="flex:1;height:26%;background:#2F3A52;border-radius:3px 3px 0 0"></div><div style="flex:1;height:58%;background:#4C7DFF;border-radius:3px 3px 0 0"></div>
+            <div style="flex:1;height:38%;background:#2F3A52;border-radius:3px 3px 0 0"></div><div style="flex:1;height:47%;background:#4C7DFF;border-radius:3px 3px 0 0"></div>
+            <div style="flex:1;height:50%;background:#2F3A52;border-radius:3px 3px 0 0"></div><div style="flex:1;height:72%;background:#4C7DFF;border-radius:3px 3px 0 0"></div>
+            <div style="flex:1;height:44%;background:#2F3A52;border-radius:3px 3px 0 0"></div><div style="flex:1;height:88%;background:#4C7DFF;border-radius:3px 3px 0 0"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;color:#6B7486;font-size:12px"><span>1. hafta</span><span>2. hafta</span><span>3. hafta</span><span>4. hafta</span><span>5. hafta</span><span>6. hafta</span></div>
+        </section>
+        <section style="padding:18px 20px;border:1px solid #1F2531;border-radius:12px;background:#11151C;display:flex;flex-direction:column;gap:10px">
+          <h2 style="margin:0;font-size:16px;font-weight:600">Kanallara göre net kâr</h2>
+          <div style="display:flex;align-items:center;gap:12px"><span style="width:100px;color:#AEB6C4">Sahibinden</span><div style="flex:1;height:10px;border-radius:5px;background:#1E2430"><div style="width:72%;height:100%;border-radius:5px;background:#4C7DFF"></div></div><span style="width:70px;text-align:right;font-family:'JetBrains Mono',monospace">₺1.880</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><span style="width:100px;color:#AEB6C4">Trendyol</span><div style="flex:1;height:10px;border-radius:5px;background:#1E2430"><div style="width:48%;height:100%;border-radius:5px;background:#4C7DFF"></div></div><span style="width:70px;text-align:right;font-family:'JetBrains Mono',monospace">₺1.250</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><span style="width:100px;color:#AEB6C4">Amazon TR</span><div style="flex:1;height:10px;border-radius:5px;background:#1E2430"><div style="width:30%;height:100%;border-radius:5px;background:#4C7DFF"></div></div><span style="width:70px;text-align:right;font-family:'JetBrains Mono',monospace">₺790</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><span style="width:100px;color:#AEB6C4">Hepsiburada</span><div style="flex:1;height:10px;border-radius:5px;background:#1E2430"><div style="width:2%;height:100%;border-radius:5px;background:#F26D6D"></div></div><span style="width:70px;text-align:right;font-family:'JetBrains Mono',monospace;color:#F26D6D">−₺12</span></div>
+        </section>
+      </div>
+      <aside style="flex:1;min-width:0;display:flex;flex-direction:column;gap:14px">
+        <section style="flex:1;padding:18px 20px;border:1px solid #1F2531;border-radius:12px;background:#11151C;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;gap:4px;padding:3px;border:1px solid #232937;border-radius:9px;align-self:flex-start">
+            <button type="button" style="height:30px;padding:0 12px;border:0;border-radius:6px;background:#1A2030;color:#fff;font:inherit;font-size:13px">Akıllı özet</button>
+            <button type="button" style="height:30px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:#8C95A5;font:inherit;font-size:13px">Ürün yorumu</button>
+          </div>
+          <div style="display:flex;gap:10px;line-height:1.5"><span style="color:#3DD68C">▲</span><span>Ciro geçen aya göre <b>%12 arttı</b>; artışın çoğu Sahibinden'deki ikinci el kart satışlarından.</span></div>
+          <div style="display:flex;gap:10px;line-height:1.5"><span style="color:#F26D6D">▼</span><span>Hepsiburada'daki kablosuz mouse <b>zararına sattı</b> (−₺12). Komisyon oranını kontrol et.</span></div>
+          <div style="display:flex;gap:10px;line-height:1.5"><span style="color:#F5A524">●</span><span>Giderler %18 arttı; çoğu ilan öne çıkarma ücreti.</span></div>
+          <div style="display:flex;gap:10px;line-height:1.5"><span style="color:#4C7DFF">●</span><span>En kârlı ürün: <b>GTX 1660 Super</b>, +₺1.050.</span></div>
+        </section>
+        <section style="padding:18px 20px;border:1px solid #1F2531;border-radius:12px;background:#11151C;display:flex;flex-direction:column;gap:10px">
+          <h2 style="margin:0;font-size:16px;font-weight:600">Claude'a sor</h2>
+          <p style="margin:0;color:#8C95A5;font-size:13px;line-height:1.5">Hazır metni kopyalayıp claude.ai'ye yapıştır; satış bilgilerin oraya gönderilmiş olur.</p>
+          <button type="button" style="height:40px;border:1px solid #2A3140;border-radius:9px;background:#0E1117;color:#C9CFDA;font:inherit">Metni kopyala</button>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+</body>
+</html>
