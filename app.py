@@ -17,11 +17,16 @@ if adres := gizli_ayar("veritabani_adresi"):
 if sifre := gizli_ayar("site_sifresi"):
     sifre_kontrolu(sifre)
 
-db.gunluk_yedek_al()
-db.tablolari_olustur()
-
-# Sol menüdeki sayaçlar: takipteki fırsat ve elde bekleyen ürün sayısı
-menu_hazirla({"firsat-takibi": len(db.firsatlari_getir(db.TAKIPTE)), "elimdekiler": len(db.stoklari_getir())})
+try:
+    db.gunluk_yedek_al()
+    db.tablolari_olustur()
+    # Sol menüdeki sayaçlar: takipteki fırsat ve elde bekleyen ürün sayısı
+    menu_sayaclari = {"firsat-takibi": len(db.firsatlari_getir(db.TAKIPTE)), "elimdekiler": len(db.stoklari_getir())}
+except Exception:  # veritabanına bağlanılamadı (internet kesik, veritabanı uyuyor…)
+    st.error("Veritabanına şu an bağlanılamıyor. Kayıtların silinmedi; bir dakika sonra sayfayı yenile. "
+             "Sorun sürerse internet bağlantını kontrol et.", icon=":material/cloud_off:")
+    st.stop()
+menu_hazirla(menu_sayaclari)
 
 menu = {
     "": [

@@ -74,6 +74,12 @@ with kart("ft_liste"):
     with sag_butonlar(baslik_sag):
         siralama = st.segmented_control("Sırala", list(SIRALAMA), default="Satış kârı %", key="ft_sirala",
                                         label_visibility="collapsed") or "Satış kârı %"
+    arama = st.text_input("Ürün ara", placeholder="Ürün ara…", key="ft_arama", label_visibility="collapsed")
+    if arama.strip():
+        df = df[df["urun_adi"].map(yorum.kucuk_harf).str.contains(yorum.kucuk_harf(arama.strip()), regex=False)]
+        if df.empty:
+            bos_durum(f"“{arama}” ile eşleşen ürün yok.")
+            st.stop()
     df = df.sort_values([SIRALAMA[siralama], "id"], ascending=False, na_position="last").reset_index(drop=True)
 
     tablo = pd.DataFrame({

@@ -37,7 +37,7 @@ def test_01_bos_veritabaninda_tum_sayfalar_acilir(uygulama):
 
 def test_02_genel_bakis_satis_ekle_penceresi(uygulama, vt_ayni):
     ekran = uygulama.sayfa()
-    assert ekran.kpi_sayisi() == 4
+    assert ekran.kpi_sayisi() == 5
     assert "Kaydet" not in ekran.dugme_etiketleri()  # sayfada büyük satış formu yok
     ekran = ekran.tikla("Satış ekle")
     assert ekran.tur("dialog")
@@ -161,7 +161,7 @@ def test_09_raporlar_donemler_sekmeler_ve_yorumlar(uygulama, vt_ayni):
     ekran = uygulama.sayfa("raporlar")
     assert ekran.kpi_sayisi() == 5
     assert ekran.icerir("−₺100")  # Giderler kartı
-    assert len(ekran.tur("altair_chart")) == 1
+    assert len(ekran.tur("altair_chart")) == 2
     assert len(ekran.tur("code")) == 1  # Claude'a sor metni
     assert any("₺100 ek giderin var" in m for m in ekran.metinler("markdown"))
     for donem in ["Geçen ay", "Son 30 gün", "Bu yıl", "Tümü"]:
@@ -245,3 +245,15 @@ def test_13_firsat_takibi_ekle_degerlendir_satin_al(uygulama, vt_ayni):
     assert "“Kahve makinesi” güncellendi." in ekran.metinler("success")
     assert vt_ayni.firsatlari_getir(vt_ayni.VAZGECILDI).iloc[0].id == kid
     assert uygulama.sayfa().cevap["status"] == "ready"  # Genel Bakış (tahmin isabeti) açılır
+
+
+def test_14_gider_excel_dosyasi(vt_ayni):
+    from io import BytesIO
+
+    import pandas as pd
+
+    from arayuz.ortak import gider_excel_dosyasi
+    vt_ayni.gider_ekle(dict(tarih=date.today(), kategori="Ambalaj", tutar=75, aciklama="Koli bandı"))
+    tablo = pd.read_excel(BytesIO(gider_excel_dosyasi(vt_ayni.giderleri_getir())))
+    assert list(tablo.columns) == ["Tarih", "Kategori", "Açıklama", "Tutar (₺)"]
+    assert (tablo["Tutar (₺)"] == 75).any()

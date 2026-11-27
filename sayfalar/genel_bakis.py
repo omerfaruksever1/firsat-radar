@@ -60,6 +60,8 @@ stok_alt = (f"{int(stok['kalan'].sum())} ürün · {uzun_bekleyen}'si {BEKLEME_U
 ozet_kartlari([
     dict(baslik="Bu ay ciro", deger=styles.para(ciro), alt=ciro_alt[0], alt_rengi=ciro_alt[1]),
     dict(baslik="Satış kârı", deger=styles.para(kar), deger_rengi=styles.kar_rengi(kar), **kar_kart),
+    dict(baslik="Gerçek kâr", deger=styles.para(gercek), deger_rengi=styles.kar_rengi(gercek),
+         alt=f"Satış kârı − giderler ({styles.para(gider)})"),
     dict(baslik="Kâr marjı", deger=yuzde(marj), cubuk=marj / 50,
          alt="Satış kârı ÷ ciro"),
     dict(baslik="Elimdekiler", deger=styles.para(stok["sermaye"].sum()), alt=stok_alt,

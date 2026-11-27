@@ -53,6 +53,12 @@ with liste_sutunu:
              alt_rengi=styles.RENK["uyari"] if uzun else None),
     ])
 
+    if uzun:
+        eski = stok[stok["bekleme_gun"] > UZUN].sort_values("bekleme_gun", ascending=False).head(3)
+        adlar = ", ".join(f"<b>{styles.kacis(r.urun_adi)}</b> ({int(r.bekleme_gun)} gün)" for r in eski.itertuples())
+        styles.not_kutusu(f"{UZUN} günü geçen ürünlerin var: {adlar}. Fiyatı düşürmeyi ya da ilanı yenilemeyi "
+                          "düşün; bağlı para beklerken kazanmaz.", "")
+
     with kart("el_liste"):
         c1, c2, c3 = st.columns([2, 1, 1])
         arama = c1.text_input("Ürün ara", placeholder="Ürün ara…", key="el_arama", label_visibility="collapsed")

@@ -171,6 +171,47 @@ with sag, kart("rp_claude", height="stretch"):
     else:
         claude_a_sor(yorum.donem_istemi(df, bas, bit), "Metni göster: bu dönem için")
 
+# ---------- Kategoriler + son 6 ay ----------
+sol, sag = st.columns([1, 1.6], gap="small")
+with sol, kart("rp_kategori", height="stretch"):
+    st.subheader("Kategoriye göre satış kârı", anchor=False)
+    kategorili = df[df["kategori"] != ""]
+    if kategorili.empty:
+        styles.bos_kart("Satışlara kategori yazarsan hangi ürün türünün daha çok kazandırdığını burada görürsün.")
+    else:
+        styles.html(styles.yatay_cubuklar(list(
+            kategorili.groupby("kategori")["net_kar"].sum().sort_values(ascending=False).items())))
+
+with sag, kart("rp_6ay", height="stretch"):
+    st.subheader("Son 6 ay: satış kârı ve gerçek kâr", anchor=False)
+    ay_basi = [(bugun.replace(day=1) - pd.DateOffset(months=i)).date() for i in range(5, -1, -1)]
+    tum_gider = db.giderleri_getir()
+    satirlar = []
+    for ay in ay_basi:
+        ay_sonu = (pd.Timestamp(ay) + pd.offsets.MonthEnd(0)).date()
+        satis_kari = donemler.filtrele(tum, ay, ay_sonu)["net_kar"].sum()
+        ay_gideri = donemler.filtrele(tum_gider, ay, ay_sonu)["tutar"].sum() if not tum_gider.empty else 0.0
+        satirlar.append({"ay": AYLAR[ay.month - 1][:3], "tur": "Satış kârı", "tutar_sayi": satis_kari})
+        satirlar.append({"ay": AYLAR[ay.month - 1][:3], "tur": "Gerçek kâr", "tutar_sayi": satis_kari - ay_gideri})
+    veri = pd.DataFrame(satirlar)
+    veri["tutar"] = veri["tutar_sayi"].map(styles.para)
+    etiketler = list(dict.fromkeys(veri["ay"]))
+    st.altair_chart(
+        alt.Chart(veri).mark_bar(cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
+            x=alt.X("ay:N", sort=etiketler, title=None,
+                    axis=alt.Axis(labelAngle=0, ticks=False, labelColor=styles.RENK["soluk"], domainColor="#232937")),
+            xOffset=alt.XOffset("tur:N", sort=["Satış kârı", "Gerçek kâr"]),
+            y=alt.Y("tutar_sayi:Q", title=None, axis=alt.Axis(
+                labelExpr="'₺' + replace(format(datum.value, ',.0f'), regexp(',', 'g'), '.')",
+                gridColor="#181D26", domain=False, ticks=False, labelColor=styles.RENK["soluk"])),
+            color=alt.Color("tur:N", scale=alt.Scale(domain=["Satış kârı", "Gerçek kâr"],
+                                                     range=[ONCEKI_RENK, styles.RENK["kar"]]),
+                            legend=alt.Legend(title=None, orient="top", labelColor=styles.RENK["metin2"])),
+            tooltip=[alt.Tooltip("ay:N", title="Ay"), alt.Tooltip("tur:N", title="Tür"),
+                     alt.Tooltip("tutar:N", title="Tutar")],
+        ).properties(height=260, background="transparent").configure_view(stroke=None),
+        width="stretch", alt="Son 6 ayın satış kârı ve gerçek kârı çubuk grafiği")
+
 # ---------- Ayrıntılı tablolar ----------
 with st.expander("Ayrıntılı tablolar: ürünler, sıfır / ikinci el, kategoriler", icon=":material/table_chart:"):
     def grup_tablosu(alan, baslik):

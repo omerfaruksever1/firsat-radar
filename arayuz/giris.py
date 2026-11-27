@@ -2,11 +2,14 @@
 Görünüm: tasarim/00-giris.html — solda tanıtım paneli, sağda şifre formu."""
 
 import hmac
+import time
 
 import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 
 import styles
+
+MAKS_DENEME, KILIT_SANIYE = 5, 30
 
 _GIRIS_CSS = f"""
 <style>
@@ -81,10 +84,21 @@ def sifre_kontrolu(sifre):
         with st.form("giris_formu", border=False):
             girilen = st.text_input("Şifre", type="password")
             if st.form_submit_button("Giriş yap", type="primary", width="stretch"):
-                if hmac.compare_digest(girilen.encode(), str(sifre).encode()):
+                kalan = st.session_state.get("giris_kilit", 0) - time.time()
+                if kalan > 0:
+                    st.error(f"Çok fazla yanlış deneme. {int(kalan) + 1} saniye sonra tekrar dene.",
+                             icon=":material/lock_clock:")
+                elif hmac.compare_digest(girilen.encode(), str(sifre).encode()):
                     st.session_state.giris_yapildi = True
+                    st.session_state.pop("giris_hata", None)
                     st.rerun()
-                st.error("Şifre yanlış.", icon=":material/error:")
+                else:
+                    hata = st.session_state.get("giris_hata", 0) + 1
+                    st.session_state.giris_hata = hata
+                    if hata >= MAKS_DENEME:  # her 5 yanlışta 30 saniye bekletilir
+                        st.session_state.giris_kilit = time.time() + KILIT_SANIYE
+                        st.session_state.giris_hata = 0
+                    st.error("Şifre yanlış.", icon=":material/error:")
         styles.html(f'<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:{styles.RENK["soluk"]}">'
                     '<span>🔒</span>Bağlantı şifreli · şifre yalnızca bu oturum için hatırlanır</div>')
     st.stop()
