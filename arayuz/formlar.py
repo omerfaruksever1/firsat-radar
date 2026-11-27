@@ -59,12 +59,12 @@ def komisyonu_hesapla(onek):
 
 def kar_onizleme(alis, satis, kargo, komisyon, adet):
     if satis <= 0:
-        st.caption("Satış fiyatını girince net kâr burada hesaplanır.")
+        st.caption("Satış fiyatını girince satış kârı burada hesaplanır.")
         return
     net_kar, marj = db.kar_hesapla(alis, satis, kargo, komisyon, adet)
     renk = "blue" if net_kar >= 0 else "orange"
-    st.markdown(f"Net kâr: :{renk}[**{tl(net_kar)}**]  ·  Kâr marjı: :{renk}[**{yuzde(marj)}**]",
-                help="(satış − alış − kargo − komisyon) × adet. Kâr marjı = net kâr ÷ toplam satış tutarı.")
+    st.markdown(f"Satış kârı: :{renk}[**{tl(net_kar)}**]  ·  Kâr marjı: :{renk}[**{yuzde(marj)}**]",
+                help="(satış − alış − kargo − komisyon) × adet. Kâr marjı = satış kârı ÷ toplam satış tutarı.")
 
 
 def kaydi_dogrula(kayit):
@@ -172,7 +172,7 @@ def yeni_satis_penceresi():
             return
         db.satis_ekle(kayit)
         st.session_state.satis_mesaj = ("ok", f"“{kayit['urun_adi'].strip()}” kaydedildi. "
-                                              f"Net kâr: {_net_kar_metni(kayit)}")
+                                              f"Satış kârı: {_net_kar_metni(kayit)}")
         formu_sifirla("yeni")
         st.rerun()
 
@@ -353,7 +353,7 @@ def stoktan_sat_penceresi(stok_id):
             st.error(str(e), icon=":material/error:")
             return
         st.session_state.stok_mesaj = ("ok", f"“{kayit['urun_adi'].strip()}” satıldı. "
-                                             f"Net kâr: {_net_kar_metni(kayit)}")
+                                             f"Satış kârı: {_net_kar_metni(kayit)}")
         formu_sifirla(onek)
         st.rerun()
 
@@ -365,12 +365,12 @@ OTOMATIK_KANAL = "En kârlı kanal (otomatik)"
 
 def firsat_kar_onizleme(alis, kargo, piyasa, kanal):
     if piyasa <= 0:
-        st.caption("Tahmini satış fiyatını girince net kâr burada hesaplanır. Bilmiyorsan boş bırak; listeye "
+        st.caption("Tahmini satış fiyatını girince satış kârı burada hesaplanır. Bilmiyorsan boş bırak; listeye "
                    "ekledikten sonra “Claude'a sor” ile öğrenebilirsin.")
         return
     sonuc = fiyat.en_iyi_kanal(alis, kargo, piyasa, db.kanallari_getir(), kanal)
     renk = "blue" if sonuc["net_kar"] >= 0 else "orange"
-    st.markdown(f"{sonuc['kanal']} kanalında satarsan adet başına net kâr: :{renk}[**{tl(sonuc['net_kar'])}**]  ·  "
+    st.markdown(f"{sonuc['kanal']} kanalında satarsan adet başına satış kârı: :{renk}[**{tl(sonuc['net_kar'])}**]  ·  "
                 f"Kâr marjı: :{renk}[**{yuzde(sonuc['marj'])}**]  ·  {fiyat.degerlendirme(sonuc['marj'])}",
                 help="Tahmini satış fiyatı − alış − kargo − kanal komisyonu. Komisyon oranları Ayarlar'dan gelir; "
                      "otomatik seçimde elden satış hesaba katılmaz.")
@@ -432,7 +432,7 @@ def _firsat_dogrula(kayit):
 
 @st.dialog("Fırsat ekle", width="large")
 def firsat_ekle_penceresi():
-    st.caption("Gözüne kestirdiğin bir ürünü takip listene ekle. Uygulama her kanaldaki net kârı hesaplar.")
+    st.caption("Gözüne kestirdiğin bir ürünü takip listene ekle. Uygulama her kanaldaki satış kârını hesaplar.")
     kayit = firsat_formu("firsat_yeni")
     if st.button("Listeye ekle", icon=":material/add:", type="primary"):
         hata = _firsat_dogrula(kayit)

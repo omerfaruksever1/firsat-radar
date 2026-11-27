@@ -30,7 +30,7 @@ menu = {
     ],
     "Alım-satım": [
         st.Page("sayfalar/firsat_takibi.py", title="Fırsat Takibi", url_path="firsat-takibi",
-                help="Almayı düşündüğün ürünler: her kanaldaki net kâr, en iyi fırsatlar, Claude'a sor."),
+                help="Almayı düşündüğün ürünler: her kanaldaki satış kârı, en iyi fırsatlar, Claude'a sor."),
         st.Page("sayfalar/elimdekiler.py", title="Elimdekiler", url_path="elimdekiler",
                 help="Aldığın ama henüz satmadığın ürünler; tek tıkla satışa dönüştür."),
         st.Page("sayfalar/satislarim.py", title="Satışlarım", url_path="satislarim",

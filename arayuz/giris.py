@@ -52,7 +52,7 @@ def _tanitim_paneli():
         styles.html(
             '<div style="display:flex;flex-direction:column;gap:28px">'
             '<div class="fr-giris-h1">Al, sat, kârını<br>tek ekranda gör.</div>'
-            '<div class="fr-giris-p">Fırsat takibi, elindeki stok ve her satıştan kalan net kâr — komisyon ve kargo '
+            '<div class="fr-giris-p">Fırsat takibi, elindeki stok ve her satıştan kalan satış kârı — komisyon ve kargo '
             "düşülmüş hâliyle.</div>"
             '<div class="fr-giris-ornek">'
             '<div style="display:flex;justify-content:space-between;font-size:13px;color:#8C95A5">'

@@ -1,7 +1,7 @@
 """Fiyat hesaplayıcı: hedef kâra göre her satış kanalı için satış fiyatı ve verilen fiyattan kâr.
 
 Komisyon satış fiyatının yüzdesi olarak kesilir, bu yüzden fiyat şöyle bulunur:
-    net kâr = fiyat − alış − kargo − fiyat × oran
+    satış kârı = fiyat − alış − kargo − fiyat × oran
     hedef marj m ise:   fiyat = (alış + kargo) / (1 − oran − m)
     hedef tutar K ise:  fiyat = (alış + kargo + K) / (1 − oran)
 Fırsat Takibi sayfası da "en kârlı kanal" hesabında bu fonksiyonları kullanır.
@@ -29,14 +29,14 @@ def oneri_fiyat(alis, kargo, oran, hedef_turu, hedef):
 
 
 def fiyattan_kar(alis, kargo, oran, fiyat):
-    """Verilen fiyatta (net kâr, komisyon tutarı, marj %)."""
+    """Verilen fiyatta (satış kârı, komisyon tutarı, marj %)."""
     komisyon = fiyat * oran / 100
     net = fiyat - alis - kargo - komisyon
     return net, komisyon, (net / fiyat * 100 if fiyat else 0.0)
 
 
 def kanal_tablosu(alis, kargo, kanallar, hedef_turu=None, hedef=None, fiyat=None, kargosuz=("Elden",)):
-    """Her kanal için satış fiyatı, komisyon, net kâr ve marj.
+    """Her kanal için satış fiyatı, komisyon, satış kârı ve marj.
 
     `fiyat` verilirse o fiyattan kâr hesaplanır; verilmezse hedefe göre fiyat önerilir (yukarı yuvarlanır).
     `kargosuz` kanallarda kargo düşülmez (elden teslim).
@@ -79,7 +79,7 @@ def degerlendirme(marj):
 
 
 def en_iyi_kanal(alis, kargo, piyasa, kanallar, kanal="", kargosuz=("Elden",)):
-    """Piyasa fiyatından satılırsa kanal, adet başı net kâr ve marj. `kanal` boşsa en kârlı kanal seçilir;
+    """Piyasa fiyatından satılırsa kanal, adet başı satış kârı ve marj. `kanal` boşsa en kârlı kanal seçilir;
     otomatik seçimde elden satış (kargosuz kanallar) hesaba katılmaz, çünkü kargo düşülmediği için hep o
     kazanırdı. Elden satmayı düşünüyorsan kanalı elle seçebilirsin. Piyasa fiyatı girilmemişse (0) None."""
     if not piyasa or kanallar.empty:
@@ -94,7 +94,7 @@ def en_iyi_kanal(alis, kargo, piyasa, kanallar, kanal="", kargosuz=("Elden",)):
 
 
 def firsatlari_degerlendir(df, kanallar):
-    """Fırsat listesine kanal, net kâr (adet başı ve toplam), marj ve değerlendirme sütunlarını ekler; en
+    """Fırsat listesine kanal, satış kârı (adet başı ve toplam), marj ve değerlendirme sütunlarını ekler; en
     kârlıdan en az kârlıya sıralar (piyasa fiyatı olmayanlar sonda)."""
     sonuclar = [en_iyi_kanal(r.alis_fiyati, r.kargo, r.piyasa_fiyati, kanallar, r.kanal) for r in df.itertuples()]
     df = df.assign(

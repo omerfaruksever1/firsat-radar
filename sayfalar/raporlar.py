@@ -27,7 +27,7 @@ def degisim_metni(simdi, once, ters=False):
 
 
 def karsilastirma_grafigi(df, onceki, bas, bit, o_bas):
-    """Bu dönem (mavi) ve önceki dönem (koyu) net kârı yan yana: kısa dönemde haftalık, uzun dönemde aylık."""
+    """Bu dönem (mavi) ve önceki dönem (koyu) satış kârını yan yana: kısa dönemde haftalık, uzun dönemde aylık."""
     aylik = (bit - bas).days > 62
 
     def dilim(veri, baslangic):
@@ -58,9 +58,9 @@ def karsilastirma_grafigi(df, onceki, bas, bit, o_bas):
         color=alt.Color("donem:N", scale=alt.Scale(domain=["Bu dönem", "Önceki dönem"],
                                                    range=[styles.RENK["vurgu"], ONCEKI_RENK]), legend=None),
         tooltip=[alt.Tooltip("dilim:N", title="Dilim"), alt.Tooltip("donem:N", title="Dönem"),
-                 alt.Tooltip("tutar:N", title="Net kâr")],
+                 alt.Tooltip("tutar:N", title="Satış kârı")],
     ).properties(height=320, background="transparent").configure_view(stroke=None)
-    st.altair_chart(grafik, width="stretch", alt="Bu dönem ve önceki dönemin net kârı çubuk grafiği")
+    st.altair_chart(grafik, width="stretch", alt="Bu dönem ve önceki dönemin satış kârını çubuk grafiği")
 
 
 tum = db.satislari_getir()
@@ -112,7 +112,7 @@ if o_marj is not None:
     marj_alt = (f"{'▲' if fark >= 0 else '▼'} {abs(fark):.1f} puan".replace(".", ","),
                 styles.RENK["kar"] if fark >= 0 else styles.RENK["zarar"])
 else:
-    marj_alt = ("Net kâr ÷ ciro", None)
+    marj_alt = ("Satış kârı ÷ ciro", None)
 if hedef > 0 and secim in ("Bu ay", "Geçen ay"):
     gercek_alt = (f"Hedef {styles.para(hedef)} · {yuzde(gercek / hedef * 100, 0)}", None)
 else:
@@ -134,7 +134,7 @@ ozet_kartlari([
 sol, sag = st.columns([1.6, 1], gap="small")
 with sol, kart("rp_grafik", height="stretch"):
     ust = st.columns([3, 2], vertical_alignment="center")
-    ust[0].subheader("Net kâr " + ("(aylık)" if (bit - bas).days > 62 else "(haftalık)"), anchor=False)
+    ust[0].subheader("Satış kârı " + ("(aylık)" if (bit - bas).days > 62 else "(haftalık)"), anchor=False)
     if o_bas:
         ust[1].html(f'<div style="text-align:right;font-size:13px;color:{styles.RENK["metin2"]}">'
                     f'<span class="kare" style="display:inline-block;width:10px;height:10px;border-radius:2px;'
@@ -159,7 +159,7 @@ with sag, kart("rp_yorum", height="stretch"):
 
 sol, sag = st.columns([1.6, 1], gap="small")
 with sol, kart("rp_kanal", height="stretch"):
-    st.subheader("Kanallara göre net kâr", anchor=False)
+    st.subheader("Kanallara göre satış kârı", anchor=False)
     kanallar = df.groupby("pazar")["net_kar"].sum().sort_values(ascending=False)
     styles.html(styles.yatay_cubuklar(list(kanallar.items())))
 
@@ -179,9 +179,9 @@ with st.expander("Ayrıntılı tablolar: ürünler, sıfır / ikinci el, kategor
                   .sort_values("net_kar", ascending=False))
         st.dataframe(
             tablo_bicimi(pd.DataFrame({baslik: grup.index, "Adet": grup["adet"].values, "Ciro": grup["ciro"].values,
-                                       "Net kâr": grup["net_kar"].values,
+                                       "Satış kârı": grup["net_kar"].values,
                                        "Marj": (grup["net_kar"] / grup["ciro"] * 100).values}),
-                         para=["Ciro", "Net kâr"], yuzdeler=["Marj"], kar=["Net kâr", "Marj"]),
+                         para=["Ciro", "Satış kârı"], yuzdeler=["Marj"], kar=["Satış kârı", "Marj"]),
             hide_index=True, width="stretch", alt=f"{baslik} satış ve kâr tablosu")
 
     grup_tablosu("urun_adi", "Ürün")

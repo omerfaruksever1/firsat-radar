@@ -105,6 +105,38 @@ _CSS = f"""
 [data-testid="stExpander"] details {{ border-color: {RENK['kenarlik']}; background: {RENK['kart']}; }}
 /* Açılır pencere */
 div[role="dialog"] {{ background: {RENK["kart"]} !important; border: 1px solid {RENK["kenarlik"]}; }}
+
+/* ---- Küçük animasyonlar (kısa ve sakin; "hareketi azalt" ayarı olanlarda kapalı) ---- */
+@keyframes fr-yuksel {{ from {{ opacity: 0; transform: translateY(8px); }} to {{ opacity: 1; transform: none; }} }}
+@keyframes fr-uzat {{ from {{ transform: scaleX(0); }} to {{ transform: scaleX(1); }} }}
+@keyframes fr-nabiz {{ 0%, 100% {{ box-shadow: 0 0 0 0 rgba(61,214,140,.45); }} 50% {{ box-shadow: 0 0 0 5px rgba(61,214,140,0); }} }}
+
+/* KPI kartları sırayla yukarı kayarak belirir; üzerine gelince hafif yükselir */
+.fr-kpi {{ animation: fr-yuksel .45s ease-out both; transition: transform .18s ease, border-color .18s ease; }}
+.fr-kpi:nth-child(2) {{ animation-delay: .06s; }} .fr-kpi:nth-child(3) {{ animation-delay: .12s; }}
+.fr-kpi:nth-child(4) {{ animation-delay: .18s; }} .fr-kpi:nth-child(5) {{ animation-delay: .24s; }}
+.fr-kpi:hover {{ transform: translateY(-2px); border-color: {RENK['kenarlik2']}; }}
+.fr-kpi.vurgu:hover {{ border-color: {RENK['vurgu']}; }}
+/* Çubuklar soldan dolar */
+.fr-cubuk > div, .fr-yigin > div {{ transform-origin: left; animation: fr-uzat .7s cubic-bezier(.2,.7,.2,1) both; }}
+.fr-liste-satir {{ transition: background .15s ease; }}
+.fr-liste-satir:hover {{ background: rgba(255,255,255,.025); }}
+/* Düğmeler, menü ve açılır bölümler yumuşak geçer */
+[data-testid="stBaseButton-secondary"], [data-testid="stBaseButton-primary"], [data-testid="stSidebarNavLink"],
+[data-testid="stExpander"] details {{ transition: background .15s ease, border-color .15s ease, transform .1s ease; }}
+[data-testid="stBaseButton-secondary"]:active, [data-testid="stBaseButton-primary"]:active {{ transform: scale(.97); }}
+/* Durum noktası nabız gibi atar */
+.fr-durum .fr-nokta {{ animation: fr-nabiz 2.4s ease-in-out infinite; }}
+/* Dar ekran (telefon) */
+@media (max-width: 640px) {{
+  .fr-kpi-grid {{ grid-template-columns: 1fr 1fr; gap: 10px; }}
+  .fr-kpi {{ padding: 14px; }} .fr-kpi-deger {{ font-size: 21px; }}
+  .fr-yatay {{ grid-template-columns: minmax(70px, 100px) 1fr auto; gap: 6px 10px; font-size: 13px; }}
+  .fr-aciklama {{ gap: 8px 18px; }}
+  .fr-liste-satir {{ gap: 8px; }}
+  [data-testid="stMainBlockContainer"] {{ padding-left: 1rem; padding-right: 1rem; }}
+}}
+@media (prefers-reduced-motion: reduce) {{ *, *::before, *::after {{ animation: none !important; transition: none !important; }} }}
 </style>
 """
 

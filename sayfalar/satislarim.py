@@ -75,10 +75,10 @@ with kart("st_liste"):
         "Tarih": gorunen["tarih"], "Ürün": gorunen["urun_adi"], "Kanal": gorunen["pazar"],
         "Durum": gorunen["durum"].replace("İkinci el", "2. el"), "Adet": gorunen["adet"],
         "Alış": gorunen["alis_fiyati"] * gorunen["adet"], "Satış": gorunen["ciro"], "Kesinti": kesinti,
-        "Net kâr": gorunen["net_kar"], "Marj": gorunen["marj"],
+        "Satış kârı": gorunen["net_kar"], "Marj": gorunen["marj"],
     })
-    secimli_tablo(tablo_bicimi(tablo, para=["Alış", "Satış", "Kesinti", "Net kâr"], yuzdeler=["Marj"],
-                               tarih=["Tarih"], kar=["Net kâr", "Marj"]),
+    secimli_tablo(tablo_bicimi(tablo, para=["Alış", "Satış", "Kesinti", "Satış kârı"], yuzdeler=["Marj"],
+                               tarih=["Tarih"], kar=["Satış kârı", "Marj"]),
                   gorunen["id"], "st_tablo", "st_secili", alt="Satış kayıtları tablosu",
                   column_config={"Ürün": st.column_config.TextColumn(width="medium")})
 
@@ -87,7 +87,7 @@ with kart("st_liste"):
                 ("Alış", styles.para(tablo["Alış"].sum()), None),
                 ("Satış", styles.para(gorunen["ciro"].sum()), None),
                 ("Kesinti", styles.para(kesinti.sum()), styles.RENK["metin2"]),
-                ("Net kâr", styles.para(toplam_kar, isaret=True), styles.kar_rengi(toplam_kar))]
+                ("Satış kârı", styles.para(toplam_kar, isaret=True), styles.kar_rengi(toplam_kar))]
     styles.html(
         '<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 28px;padding:12px 2px 4px;'
         f'border-top:1px solid {styles.RENK["kenarlik"]}"><b>Toplam</b>'

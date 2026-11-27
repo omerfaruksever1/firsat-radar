@@ -1,4 +1,4 @@
-"""Genel Bakış: bu ayın özeti (KPI kartları), haftalık net kâr, son satışlar. Görünüm: tasarim/01-genel-bakis.html.
+"""Genel Bakış: bu ayın özeti (KPI kartları), haftalık satış kârı, son satışlar. Görünüm: tasarim/01-genel-bakis.html.
 Satış eklemek için "+ Satış ekle" düğmesi açılır pencereyi açar."""
 
 from datetime import date
@@ -59,18 +59,18 @@ stok_alt = (f"{int(stok['kalan'].sum())} ürün · {uzun_bekleyen}'si {BEKLEME_U
 
 ozet_kartlari([
     dict(baslik="Bu ay ciro", deger=styles.para(ciro), alt=ciro_alt[0], alt_rengi=ciro_alt[1]),
-    dict(baslik="Net kâr", deger=styles.para(kar), deger_rengi=styles.kar_rengi(kar), **kar_kart),
+    dict(baslik="Satış kârı", deger=styles.para(kar), deger_rengi=styles.kar_rengi(kar), **kar_kart),
     dict(baslik="Kâr marjı", deger=yuzde(marj), cubuk=marj / 50,
-         alt="Net kâr ÷ ciro"),
+         alt="Satış kârı ÷ ciro"),
     dict(baslik="Elimdekiler", deger=styles.para(stok["sermaye"].sum()), alt=stok_alt,
          alt_rengi=styles.RENK["uyari"] if uzun_bekleyen else None),
 ])
 
-# ---------- Haftalık net kâr + son satışlar ----------
+# ---------- Haftalık satış kârı + son satışlar ----------
 sol, sag = st.columns([1.6, 1], gap="small")
 with sol, kart("gb_haftalik", height="stretch"):
     ust = st.columns([3, 2], vertical_alignment="center")
-    ust[0].subheader("Haftalık net kâr", anchor=False)
+    ust[0].subheader("Haftalık satış kârı", anchor=False)
     with sag_butonlar(ust[1]):
         st.page_link("sayfalar/raporlar.py", label="Detaylı rapor →")
     son_haftalar_grafigi(tum, bugun)

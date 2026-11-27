@@ -55,7 +55,7 @@ def akilli_ozet(df, onceki=None, gider=0.0):
             metin = f"Ciron önceki döneme göre {_yuzde(abs(ciro_d))} {yon} ({_tl(ciro)})."
             if kar_d is not None:
                 kar_yon = "arttı" if kar_d >= 0 else "azaldı"
-                metin += f" Net kârın {_yuzde(abs(kar_d))} {kar_yon} ({_tl(kar)})."
+                metin += f" Satış kârın {_yuzde(abs(kar_d))} {kar_yon} ({_tl(kar)})."
             tespitler.append(("iyi" if kar >= onceki["net_kar"].sum() else "uyari", metin))
         if abs(marj - onceki_marj) >= 3:
             if marj < onceki_marj:
@@ -184,7 +184,7 @@ def urun_yorumu(df, urun):
     tespitler = []
     adet, kar, marj = int(u["adet"].sum()), u["net_kar"].sum(), _marj(u)
     tespitler.append(("iyi" if kar >= 0 else "uyari",
-                      f"{len(u)} kayıtta toplam {adet} adet sattın; net kâr {_tl(kar)}, marj {_yuzde(marj)}. "
+                      f"{len(u)} kayıtta toplam {adet} adet sattın; satış kârı {_tl(kar)}, marj {_yuzde(marj)}. "
                       f"Adet başına ortalama {_tl(kar / adet)} kazanç."))
 
     zararlilar = u[u["net_kar"] < 0]
@@ -237,7 +237,7 @@ def firsat_ozeti(df):
         tur = "iyi" if en_iyi["net_kar"] > 0 else "uyari"
         tespitler.append((tur, f"En iyi görünen: {en_iyi['urun_adi']}. {_tl(en_iyi['alis_fiyati'])} alıp "
                                f"{en_iyi['satis_kanali']} kanalında {_tl(en_iyi['piyasa_fiyati'])} fiyatla satarsan, "
-                               f"adet başına {_tl(en_iyi['net_kar'])} net kâr kalır (marj {_yuzde(en_iyi['marj'])})."))
+                               f"adet başına {_tl(en_iyi['net_kar'])} satış kârı kalır (marj {_yuzde(en_iyi['marj'])})."))
     zararli = fiyatli[fiyatli["net_kar"] < 0]
     if not zararli.empty:
         adlar = ", ".join(zararli["urun_adi"].head(3))
@@ -257,7 +257,7 @@ def firsat_ozeti(df):
 # ---------- claude.ai için hazır soru metinleri ----------
 
 def _satis_tablosu(df, en_fazla=60):
-    satirlar = ["Tarih | Ürün | Durum | Kategori | Kanal | Adet | Alış | Satış | Kargo | Komisyon | Net kâr"]
+    satirlar = ["Tarih | Ürün | Durum | Kategori | Kanal | Adet | Alış | Satış | Kargo | Komisyon | Satış kârı"]
     for r in df.head(en_fazla).itertuples():
         satirlar.append(" | ".join(str(x) for x in [
             r.tarih.strftime("%d.%m.%Y"), r.urun_adi, r.durum, r.kategori or "-", r.pazar, r.adet,
@@ -272,7 +272,7 @@ def donem_istemi(df, baslangic, bitis):
     return f"""Türkiye'de bireysel olarak online ve elden satış yapıyorum (sıfır ve ikinci el ürünler). \
 {baslangic:%d.%m.%Y} – {bitis:%d.%m.%Y} arasındaki satışlarım aşağıda. Kargo ve komisyon tutarları adet başınadır.
 
-Özet: {len(df)} satış, {int(df['adet'].sum())} adet, ciro {_tl(ciro)}, net kâr {_tl(kar)}, kâr marjı {_yuzde(_marj(df))}.
+Özet: {len(df)} satış, {int(df['adet'].sum())} adet, ciro {_tl(ciro)}, satış kârı {_tl(kar)}, kâr marjı {_yuzde(_marj(df))}.
 
 {_satis_tablosu(df)}
 

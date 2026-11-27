@@ -1,4 +1,4 @@
-"""Bütün sayfaların kullandığı görünüm parçaları: biçimlendirme, kartlar, tablolar, grafikler."""
+﻿"""Bütün sayfaların kullandığı görünüm parçaları: biçimlendirme, kartlar, tablolar, grafikler."""
 
 from datetime import date, timedelta
 from io import BytesIO
@@ -187,26 +187,26 @@ TL_EKSEN = "'₺' + replace(format(datum.value, ',.0f'), regexp(',', 'g'), '.')"
 
 
 def kar_grafigi(veri, kategori, kategori_basligi, yatay=False, yukseklik=320, aciklama=""):
-    """Net kâra göre çubuk grafik. Kâr ana renkte, zarar uyarı renginde (renkler temadan gelir)."""
+    """Satış kârıa göre çubuk grafik. Kâr ana renkte, zarar uyarı renginde (renkler temadan gelir)."""
     veri = veri.assign(
         durum=["Kâr" if v >= 0 else "Zarar" for v in veri["net_kar"]],
         tutar=veri["net_kar"].map(tl),
     )
     kat = dict(field=kategori, type="nominal", sort=None, title=kategori_basligi)
-    deger = dict(field="net_kar", type="quantitative", title="Net kâr",
+    deger = dict(field="net_kar", type="quantitative", title="Satış kârı",
                  axis=alt.Axis(labelExpr=TL_EKSEN))
     grafik = alt.Chart(veri).mark_bar(cornerRadius=3).encode(
         **({"y": alt.Y(**kat), "x": alt.X(**deger)} if yatay
            else {"x": alt.X(**kat, axis=alt.Axis(labelAngle=0)), "y": alt.Y(**deger)}),
         color=alt.Color("durum:N", scale=alt.Scale(domain=["Kâr", "Zarar"]), legend=None),
         tooltip=[alt.Tooltip(f"{kategori}:N", title=kategori_basligi),
-                 alt.Tooltip("tutar:N", title="Net kâr")],
+                 alt.Tooltip("tutar:N", title="Satış kârı")],
     ).properties(height=yukseklik, background="transparent")
     st.altair_chart(grafik, width="stretch", alt=aciklama)
 
 
 def haftalik_kar_grafigi(df, baslangic, bitis, yukseklik=320, eksen_basligi="Hafta başlangıcı (Pazartesi)"):
-    """Her hafta (pazartesiden başlayarak) toplam net kârı çubuk grafik olarak çizer."""
+    """Her hafta (pazartesiden başlayarak) toplam satış kârını çubuk grafik olarak çizer."""
     veri = df.copy()
     veri["hafta"] = veri["tarih"] - pd.to_timedelta(veri["tarih"].dt.day_of_week, unit="D")
     haftalik = veri.groupby("hafta")["net_kar"].sum()
@@ -217,12 +217,12 @@ def haftalik_kar_grafigi(df, baslangic, bitis, yukseklik=320, eksen_basligi="Haf
     kar_grafigi(
         pd.DataFrame({"hafta": [tr_tarih(h) for h in haftalik.index], "net_kar": haftalik.values}),
         "hafta", eksen_basligi, yukseklik=yukseklik,
-        aciklama="Haftalara göre net kâr çubuk grafiği",
+        aciklama="Haftalara göre satış kârı çubuk grafiği",
     )
 
 
 def son_haftalar_grafigi(df, bugun, hafta_sayisi=4, yukseklik=210):
-    """Son haftaların (pazartesiden başlayan) net kârı: bu hafta ana renkte, öncekiler koyu; tutarlar
+    """Son haftaların (pazartesiden başlayan) satış kârı: bu hafta ana renkte, öncekiler koyu; tutarlar
     çubukların üstünde. Görünüm: tasarim/01-genel-bakis.html."""
     bu_hafta = pd.Timestamp(bugun - timedelta(days=bugun.weekday()))
     haftalar = [bu_hafta - pd.Timedelta(weeks=i) for i in range(hafta_sayisi - 1, -1, -1)]
@@ -240,11 +240,11 @@ def son_haftalar_grafigi(df, bugun, hafta_sayisi=4, yukseklik=210):
     taban = alt.Chart(tablo).encode(x=x)
     cubuk = taban.mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
         y=alt.Y("net_kar:Q", title=None, axis=None), color=alt.Color("renk:N", scale=None),
-        tooltip=[alt.Tooltip("hafta:N", title="Hafta başı"), alt.Tooltip("etiket:N", title="Net kâr")])
+        tooltip=[alt.Tooltip("hafta:N", title="Hafta başı"), alt.Tooltip("etiket:N", title="Satış kârı")])
     yazi = taban.mark_text(dy=-8, font="JetBrains Mono", fontSize=12, color=styles.RENK["metin2"]).encode(
         y=alt.Y("net_kar:Q"), text="etiket:N")
     grafik = (cubuk + yazi).properties(height=yukseklik, background="transparent").configure_view(stroke=None)
-    st.altair_chart(grafik, width="stretch", alt="Son haftaların net kârı çubuk grafiği")
+    st.altair_chart(grafik, width="stretch", alt="Son haftaların satış kârını çubuk grafiği")
 
 
 # ---------- Excel ----------
@@ -265,7 +265,7 @@ def excel_dosyasi(df):
         "Komisyon (₺/adet)": df["komisyon"],
         "Ciro (₺)": df["ciro"],
         "Maliyet (₺)": df["maliyet"],
-        "Net kâr (₺)": df["net_kar"],
+        "Satış kârı (₺)": df["net_kar"],
         "Kâr marjı (%)": df["marj"].round(2),
         "Not": df["notlar"],
     })
@@ -277,6 +277,22 @@ def excel_dosyasi(df):
             en_uzun = max(len(str(h.value or "")) for h in sutun)
             sayfa.column_dimensions[sutun[0].column_letter].width = min(en_uzun + 3, 40)
         for satir in sayfa.iter_rows(min_row=2, min_col=2, max_col=2):
+            satir[0].number_format = "DD.MM.YYYY"
+        sayfa.freeze_panes = "A2"
+    return tampon.getvalue()
+
+
+def gider_excel_dosyasi(df):
+    tablo = pd.DataFrame({"Tarih": df["tarih"].dt.date, "Kategori": df["kategori"],
+                          "Açıklama": df["aciklama"], "Tutar (₺)": df["tutar"]})
+    tampon = BytesIO()
+    with pd.ExcelWriter(tampon, engine="openpyxl") as yazici:
+        tablo.to_excel(yazici, index=False, sheet_name="Giderler")
+        sayfa = yazici.sheets["Giderler"]
+        for sutun in sayfa.columns:
+            en_uzun = max(len(str(h.value or "")) for h in sutun)
+            sayfa.column_dimensions[sutun[0].column_letter].width = min(en_uzun + 3, 40)
+        for satir in sayfa.iter_rows(min_row=2, min_col=1, max_col=1):
             satir[0].number_format = "DD.MM.YYYY"
         sayfa.freeze_panes = "A2"
     return tampon.getvalue()

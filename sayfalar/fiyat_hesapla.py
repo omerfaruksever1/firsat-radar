@@ -90,9 +90,9 @@ with sonuc_sutunu, kart("fh_sonuc", height="stretch"):
     st.dataframe(
         tablo_bicimi(sonuc[["kanal", "oran", "fiyat", "komisyon", "kargo", "net_kar", "marj"]].rename(
             columns={"kanal": "Kanal", "oran": "Komisyon", "fiyat": "Satış fiyatı", "komisyon": "Kesinti",
-                     "kargo": "Kargo", "net_kar": "Net kâr", "marj": "Marj"}),
-                     para=["Satış fiyatı", "Kesinti", "Kargo", "Net kâr"], yuzdeler=["Komisyon", "Marj"],
-                     kar=["Net kâr", "Marj"]),
+                     "kargo": "Kargo", "net_kar": "Satış kârı", "marj": "Marj"}),
+                     para=["Satış fiyatı", "Kesinti", "Kargo", "Satış kârı"], yuzdeler=["Komisyon", "Marj"],
+                     kar=["Satış kârı", "Marj"]),
         hide_index=True, width="stretch", alt="Satış kanallarına göre fiyat ve kâr tablosu")
     if len(gecerli) < len(sonuc):
         st.caption(":orange[:material/warning:] Komisyon + hedef marj %100'ü geçtiği için bazı kanallarda bu "

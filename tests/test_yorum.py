@@ -82,7 +82,7 @@ def test_urun_yorumu(vt):
                     komisyon=0, adet=2, durum="İkinci el"))
     tespit = yorum.urun_yorumu(df, "Kılıf")
     hepsi = " ".join(metinler(tespit))
-    assert "toplam 6 adet sattın; net kâr ₺12" in hepsi
+    assert "toplam 6 adet sattın; satış kârı ₺12" in hepsi
     assert "Trendyol satışında adet başına maliyet ₺57" in hepsi
     assert "Satış fiyatını yükselttin (ilk satış ₺45 → son satış ₺60)" in hepsi
     assert "Adet başına en çok Web sitem kanalında" in hepsi

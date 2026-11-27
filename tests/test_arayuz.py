@@ -48,7 +48,7 @@ def test_02_genel_bakis_satis_ekle_penceresi(uygulama, vt_ayni):
     ekran = ekran.doldur(yeni_komisyon=71.0)
     assert any("₺416,00" in m for m in ekran.metinler("markdown"))  # canlı kâr önizlemesi
     ekran = ekran.tikla("Satışı kaydet")
-    assert "“Laptop standı” kaydedildi. Net kâr: ₺416,00" in ekran.metinler("success")
+    assert "“Laptop standı” kaydedildi. Satış kârı: ₺416,00" in ekran.metinler("success")
     assert ekran.icerir("Laptop standı ×2")  # Son satışlar listesinde
     r = vt_ayni.satislari_getir().iloc[0]
     assert (r.durum, r.kaynak, r.tarih.date()) == ("İkinci el", "Toptancı A", date.today())
@@ -65,7 +65,7 @@ def test_03_yeni_satis_penceresi_ve_otomatik_komisyon(uygulama, vt_ayni):
     ekran = ekran.doldur(yeni_urun="Kot ceket", yeni_alis=80.0, yeni_durum="İkinci el", yeni_kargo=0.0,
                          yeni_kategori="Vintage giyim", yeni_kaynak="Bit pazarı", yeni_notlar="Hafif yıpranmış")
     ekran = ekran.tikla("Satışı kaydet")
-    assert any("“Kot ceket” kaydedildi. Net kâr: ₺145,00" in m for m in ekran.metinler("success"))
+    assert any("“Kot ceket” kaydedildi. Satış kârı: ₺145,00" in m for m in ekran.metinler("success"))
     r = vt_ayni.satislari_getir().query("urun_adi == 'Kot ceket'").iloc[0]
     assert (r.kategori, r.kaynak, r.notlar, r.komisyon) == ("Vintage giyim", "Bit pazarı", "Hafif yıpranmış", 25)
 
@@ -120,7 +120,7 @@ def test_06_elimdekiler_ekle_sat_ve_geri_al(uygulama, vt_ayni):
     assert ekran.deger(f"{onek}_alis") == 150.0 and ekran.deger(f"{onek}_satis") == 420.0
     ekran = ekran.doldur(**{f"{onek}_adet": 2, f"{onek}_pazar": "Elden", f"{onek}_kargo": 0.0,
                             f"{onek}_komisyon": 0.0}).tikla("Satışı kaydet")
-    assert any("“Deri çanta” satıldı. Net kâr: ₺540,00" in m for m in ekran.metinler("success"))
+    assert any("“Deri çanta” satıldı. Satış kârı: ₺540,00" in m for m in ekran.metinler("success"))
     assert vt_ayni.stoklari_getir().iloc[0].kalan == 1
     satis_id = int(vt_ayni.satislari_getir().query("urun_adi == 'Deri çanta'").iloc[0].id)
 
@@ -192,7 +192,7 @@ def test_11_ayarlar_varsayilanlar_ve_genel_bakis_hedefi(uygulama, vt_ayni):
     assert "Varsayılanlar kaydedildi." in ekran.metinler("success")
     assert (vt_ayni.ayar_getir("varsayilan_kargo"), vt_ayni.ayar_getir("aylik_hedef")) == ("45.0", "5000.0")
     ekran = uygulama.sayfa()
-    assert ekran.icerir("Hedef ₺5.000")  # Net kâr kartında aylık hedef ilerlemesi
+    assert ekran.icerir("Hedef ₺5.000")  # Satış kârı kartında aylık hedef ilerlemesi
     ekran = ekran.tikla("Satış ekle")
     assert ekran.deger("yeni_kargo") == 45.0  # varsayılan kargo yeni formlarda hazır
 

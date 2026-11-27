@@ -239,7 +239,7 @@ def satis_sil(kayit_id):
 
 
 def satislari_getir(baslangic: date | None = None, bitis: date | None = None):
-    """Satışları hesaplanmış ciro, maliyet, net kâr ve marj sütunlarıyla döndürür."""
+    """Satışları hesaplanmış ciro, maliyet, satış kârı ve marj sütunlarıyla döndürür."""
     # tahmini_fiyat: ürün Fırsat Takibi'nden alındıysa orada tahmin edilen satış fiyatı (tahmin isabeti için)
     sql = ("SELECT s.*, st.alis_tarihi AS stok_alis_tarihi, f.piyasa_fiyati AS tahmini_fiyat FROM satislar s "
            "LEFT JOIN stok st ON st.id = s.stok_id "

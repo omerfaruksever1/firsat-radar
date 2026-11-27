@@ -26,12 +26,18 @@ BOLUMLER = {
         "ekle** ile kaydet: alış fiyatı, varsa ilan linki ve kaça satabileceğini düşündüğün fiyat.\n"
         "2. Satış fiyatını bilmiyorsan ürünü seçip **Claude'a sor** metnini claude.ai'ye yapıştır; internetten "
         "güncel fiyatları araştırır (ücretsiz). Bulduğun fiyatı **Düzenle**'den gir.\n"
-        "3. Uygulama her kanalda komisyon ve kargo düşülmüş net kârı hesaplar ve ürünleri **Güçlü fırsat** "
+        "3. Uygulama her kanalda komisyon ve kargo düşülmüş satış kârını hesaplar ve ürünleri **Güçlü fırsat** "
         "(marj ≥ %25), **Değerlendirilebilir**, **Zayıf** ya da **Zararına** diye işaretler.\n"
         "4. Ürünü aldığında **Satın aldım** de; Elimdekiler'e geçer. Sattığında Genel Bakış'ta tahmin ettiğin "
         "fiyatın ne kadar tuttuğu (**tahmin isabeti**) görünür.\n\n"
         "Uygulama siteleri kendisi taramaz: Sahibinden, Trendyol gibi siteler otomatik taramayı engelliyor ve "
         "kurallarıyla yasaklıyor. Bu yüzden ürünleri sen eklersin, hesabı uygulama yapar."),
+    "Terimler": (
+        "- **Satış kârı** = satış − alış − komisyon − kargo (adet başına, sonra adetle çarpılır).\n"
+        "- **Gerçek kâr** = satış kârı − giderler. Giderler sayfasına yazdığın ambalaj, ilan ücreti gibi masraflar "
+        "burada düşülür.\n"
+        "- **Kâr marjı** = kârın satış tutarına oranı. Hangi kârdan hesaplandığı her yerde yanında yazar "
+        "(ör. “Satış kârı ÷ ciro”)."),
     "Kaça satmalıyım?": (
         "**Fiyat Hesapla** sayfasına alış fiyatını ve istediğin kârı (yüzde ya da tutar olarak) gir. Her satış "
         "kanalında komisyon ve kargo düşüldükten sonra bu kârı bırakan fiyatı gösterir. %15 – %30 düğmeleriyle "

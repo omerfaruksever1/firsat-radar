@@ -54,7 +54,7 @@ def test_hedef_marjdan_fiyat():
 
 
 def test_hedef_tutardan_fiyat():
-    # (300 + 45 + 100) / (1 − 0,15) ≈ 523,53 → net kâr tam 100
+    # (300 + 45 + 100) / (1 − 0,15) ≈ 523,53 → satış kârı tam 100
     p = fiyat.oneri_fiyat(300, 45, 15, fiyat.HEDEF_TURLERI[1], 100)
     assert fiyat.fiyattan_kar(300, 45, 15, p)[0] == pytest.approx(100)
 

@@ -10,7 +10,7 @@ import donemler
 import styles
 import veritabani as db
 from arayuz import formlar
-from arayuz.ortak import (AYLAR, bos_durum, kart, kayit_secimi, mesaji_goster, sayfa_basligi, secimli_tablo,
+from arayuz.ortak import (AYLAR, bos_durum, gider_excel_dosyasi, kart, kayit_secimi, mesaji_goster, sayfa_basligi, secimli_tablo,
                           tablo_bicimi, tl, tr_tarih)
 
 sayfa_basligi("Giderler", "Ürüne bağlı olmayan masraflar — raporlarda gerçek kârdan düşülür")
@@ -62,6 +62,9 @@ with liste_sutunu:
             lambda k: f"color: {renk.get(k, styles.RENK['metin2'])}", subset=["Kategori"])
         secimli_tablo(stil, giderler["id"], "gd_tablo", "gd_secili", alt="Gider kayıtları tablosu",
                       column_config={"Açıklama": st.column_config.TextColumn(width="medium")})
+        st.download_button("Excel'e aktar", data=gider_excel_dosyasi(giderler), icon=":material/download:",
+                           file_name=f"firsatradar_giderler_{bugun:%Y-%m-%d}.xlsx",
+                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         kayitlar = {int(r.id): r for r in giderler.itertuples()}
         c1, c2 = st.columns([3, 1], vertical_alignment="bottom")
         with c1:
